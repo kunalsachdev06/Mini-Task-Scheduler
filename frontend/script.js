@@ -217,7 +217,8 @@ function requestNotificationPermission() {
 }
 
 function startNotificationChecker() {
-  setInterval(checkTaskNotifications, 30000); // Check every 30 seconds
+  setInterval(checkTaskNotifications, 10000); // Check every 10 seconds for better accuracy
+  checkTaskNotifications(); // Run immediately on page load
 }
 
 function checkTaskNotifications() {
@@ -225,13 +226,28 @@ function checkTaskNotifications() {
   const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
   
   tasks.forEach(task => {
-    if (task.status === 'pending' && !task.notified && task.time === currentTime) {
-      task.notified = true;
-      saveTasks();
-      showFullscreenNotification(task);
-      logAction(`Notification sent: ${task.command}`);
+    if (task.status === 'pending' && !task.notified) {
+      // Check if task time has passed (within the last 5 minutes)
+      const taskDateTime = getTaskDateTime(task.time);
+      const timeDiff = now - taskDateTime;
+      
+      // Trigger notification if task time is now or was within the last 5 minutes
+      if (timeDiff >= 0 && timeDiff <= 5 * 60 * 1000) {
+        task.notified = true;
+        saveTasks();
+        showFullscreenNotification(task);
+        logAction(`Notification sent: ${task.command} (${timeDiff/1000}s after scheduled time)`);
+      }
     }
   });
+}
+
+// Helper function to get full DateTime for a task
+function getTaskDateTime(timeString) {
+  const today = new Date();
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const taskDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, 0);
+  return taskDateTime;
 }
 
 function showFullscreenNotification(task) {
