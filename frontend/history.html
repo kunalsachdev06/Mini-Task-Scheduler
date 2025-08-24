@@ -24,35 +24,72 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 2rem 2.5rem 1rem 2.5rem;
       margin-bottom: 1rem;
+      background: var(--card-bg);
+      border-radius: 16px;
+      margin: 1rem 2.5rem;
+      box-shadow: 0 2px 12px rgba(37,99,235,0.06);
     }
     .history-stats {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem; margin: 0 2.5rem 2rem 2.5rem;
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem; 
+      margin: 0 2.5rem 1.5rem 2.5rem;
     }
     .stat-card {
-      background: var(--card-bg); padding: 1.5rem; border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(37,99,235,0.08); text-align: center;
+      background: var(--card-bg); 
+      padding: 1.3rem; 
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.08); 
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(37,99,235,0.15);
     }
     .stat-number {
-      font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0;
+      font-size: 2.2rem; 
+      font-weight: 800; 
+      margin: 0.4rem 0;
       background: linear-gradient(90deg, #2563eb, #10b981);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent;
       background-clip: text;
     }
     .history-main {
-      display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;
-      margin: 0 2.5rem; align-items: flex-start;
+      display: grid; 
+      grid-template-columns: 1.8fr 1fr; 
+      gap: 1.8rem;
+      margin: 0 2.5rem; 
+      align-items: flex-start;
     }
     .history-filters {
-      display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+      display: flex; 
+      gap: 0.8rem; 
+      margin-bottom: 1.5rem; 
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .filter-btn {
-      padding: 0.5rem 1rem; border-radius: 20px; border: none;
-      background: rgba(37,99,235,0.1); color: var(--accent);
-      cursor: pointer; transition: all 0.2s;
+      padding: 0.6rem 1.2rem; 
+      border-radius: 24px; 
+      border: none;
+      background: rgba(37,99,235,0.08); 
+      color: var(--accent);
+      cursor: pointer; 
+      transition: all 0.2s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .filter-btn:hover {
+      background: rgba(37,99,235,0.15);
+      transform: translateY(-1px);
     }
     .filter-btn.active {
-      background: var(--accent); color: white;
+      background: var(--accent); 
+      color: white;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
     }
     .history-item {
       background: var(--card-bg); border-radius: 12px; padding: 1.2rem;
@@ -77,12 +114,31 @@
       gap: 0.8rem; font-size: 0.9rem; color: var(--muted);
     }
     .time-chart {
-      background: var(--card-bg); border-radius: 16px; padding: 1.5rem;
+      background: var(--card-bg); 
+      border-radius: 16px; 
+      padding: 1.5rem;
       box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .time-chart:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(37,99,235,0.15);
+    }
+    .time-chart h4 {
+      margin: 0 0 1rem 0;
+      color: var(--text);
+      font-weight: 700;
     }
     .productivity-chart {
-      height: 200px; background: linear-gradient(180deg, rgba(37,99,235,0.1) 0%, transparent 100%);
-      border-radius: 8px; margin-top: 1rem; position: relative;
+      height: 180px; 
+      background: linear-gradient(180deg, rgba(37,99,235,0.08) 0%, transparent 100%);
+      border-radius: 12px; 
+      margin-top: 1rem; 
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed rgba(37,99,235,0.2);
     }
     @media (max-width: 900px) {
       .history-main { 
@@ -91,35 +147,44 @@
         margin: 0 1rem;
       }
       .history-header { 
-        margin: 0 1rem;
-        padding: 1.5rem 1rem 1rem 1rem;
+        margin: 1rem;
+        padding: 1.5rem;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.2rem;
         text-align: center;
       }
       .history-stats { 
         margin: 0 1rem 1.5rem 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
       }
       .stat-card {
-        padding: 1.2rem;
+        padding: 1rem;
       }
       .stat-number {
-        font-size: 2rem;
+        font-size: 1.8rem;
+      }
+      
+      /* Better button layout on mobile */
+      .history-header > div:last-child {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        flex-wrap: wrap;
       }
     }
     
     /* Mobile portrait */
     @media (max-width: 768px) {
       .history-filters {
-        justify-content: center;
+        justify-content: flex-start;
         gap: 0.5rem;
+        margin-bottom: 1.2rem;
       }
       
       .filter-btn {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
         min-height: 44px;
         touch-action: manipulation;
       }
@@ -131,27 +196,23 @@
       
       .history-item {
         padding: 1rem;
+        margin-bottom: 0.8rem;
       }
       
       .export-btn, .import-btn {
-        padding: 0.8rem 1.2rem;
-        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+        font-size: 0.85rem;
         min-height: 44px;
         touch-action: manipulation;
-      }
-    }
-    
-    /* Landscape orientation fixes */
-    @media screen and (max-height: 500px) and (orientation: landscape) {
-      .history-header {
-        padding: 1rem;
-        margin-bottom: 0.5rem;
+        flex: 1;
       }
       
-      .history-stats {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 0.8rem;
-        margin-bottom: 1rem;
+      h1 {
+        font-size: 1.8rem !important;
+      }
+      
+      .time-chart {
+        padding: 1rem;
       }
       
       .stat-card {
@@ -161,6 +222,59 @@
       .stat-number {
         font-size: 1.5rem;
         margin: 0.2rem 0;
+      }
+    }
+    
+    /* Landscape orientation fixes */
+    @media screen and (max-height: 500px) and (orientation: landscape) {
+      .history-header {
+        padding: 0.8rem;
+        margin: 0.5rem 1rem;
+        flex-direction: row;
+        gap: 1rem;
+        text-align: left;
+      }
+      
+      .history-header h1 {
+        font-size: 1.4rem !important;
+        margin: 0 !important;
+      }
+      
+      .history-header p {
+        font-size: 0.8rem !important;
+        margin: 0.2rem 0 0 0 !important;
+      }
+      
+      .history-stats {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.6rem;
+        margin: 0 1rem 1rem 1rem;
+      }
+      
+      .stat-card {
+        padding: 0.6rem;
+      }
+      
+      .stat-number {
+        font-size: 1.2rem;
+        margin: 0.1rem 0;
+      }
+      
+      .stat-card div:first-child {
+        font-size: 0.75rem;
+      }
+      
+      .time-chart {
+        padding: 0.8rem;
+      }
+      
+      .history-main {
+        gap: 1rem;
+      }
+      
+      .filter-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
       }
     }
     
@@ -208,7 +322,6 @@
   </style>
 </head>
 <body>
-  <nav class="topnav">
   <nav class="topnav">
     <div class="brand"><img src="./assets/logo.png" alt="logo" class="nav-logo"> <span>Mini Task Scheduler</span></div>
     <div class="navlinks">
