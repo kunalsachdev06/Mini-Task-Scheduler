@@ -2,9 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>About - Mini Task Scheduler</title>
   <link rel="stylesheet" href="styles.css">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Mobile optimizations -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Task Scheduler">
+  <link rel="apple-touch-icon" href="./assets/logo.png">
+  
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-TileColor" content="#2563eb">
+  
+  <style>
+    /* Mobile responsive styles for about page */
+    @media (max-width: 768px) {
+      main {
+        padding: 1rem !important;
+      }
+      
+      .container {
+        margin: 0 auto !important;
+        padding: 1.5rem 1rem !important;
+      }
+      
+      h2 {
+        font-size: 1.5rem !important;
+        text-align: center !important;
+      }
+      
+      p, li {
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+      }
+      
+      ul {
+        padding-left: 1.2rem !important;
+      }
+      
+      .topnav {
+        padding: 1rem !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+      }
+      
+      .navlinks {
+        flex-wrap: wrap !important;
+        gap: 0.3rem !important;
+      }
+      
+      .navlinks a {
+        padding: 0.5rem 0.7rem !important;
+        font-size: 0.85rem !important;
+      }
+    }
+    
+    /* Landscape orientation */
+    @media screen and (max-height: 500px) and (orientation: landscape) {
+      main {
+        padding: 0.5rem !important;
+      }
+      
+      .container {
+        padding: 1rem !important;
+      }
+      
+      h2 {
+        font-size: 1.3rem !important;
+        margin-bottom: 0.8rem !important;
+      }
+      
+      .topnav {
+        padding: 0.5rem 1rem !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <nav class="topnav">

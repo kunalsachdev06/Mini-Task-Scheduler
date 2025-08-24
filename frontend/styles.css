@@ -402,3 +402,59 @@ pre#logArea { background: rgba(0,0,0,0.03); padding:1rem; border-radius:8px; whi
     background: rgba(0, 0, 0, 0.1);
   }
 }
+
+/* Global landscape orientation improvements */
+@media screen and (max-height: 600px) and (orientation: landscape) {
+  .topnav {
+    padding: 0.8rem 1rem;
+  }
+  
+  .navlinks a {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  main {
+    padding: 1rem;
+  }
+  
+  .card {
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  /* Compact form elements for landscape */
+  form input, form select {
+    padding: 0.6rem;
+    margin: 0.3rem 0;
+  }
+  
+  form button {
+    padding: 0.7rem 1rem;
+  }
+}
+
+/* Ultra-wide screen optimization */
+@media (min-width: 1400px) {
+  main {
+    max-width: 1200px;
+  }
+  
+  .dashboard-main-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* Tablet-specific optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    max-width: 100%;
+  }
+}
