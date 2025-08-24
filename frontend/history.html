@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>History - Mini Task Scheduler</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 2rem 2.5rem 1rem 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .history-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem; margin: 0 2.5rem 2rem 2.5rem;
+    }
+    .stat-card {
+      background: var(--card-bg); padding: 1.5rem; border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.08); text-align: center;
+    }
+    .stat-number {
+      font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0;
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .history-main {
+      display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;
+      margin: 0 2.5rem; align-items: flex-start;
+    }
+    .history-filters {
+      display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.5rem 1rem; border-radius: 20px; border: none;
+      background: rgba(37,99,235,0.1); color: var(--accent);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: var(--accent); color: white;
+    }
+    .history-item {
+      background: var(--card-bg); border-radius: 12px; padding: 1.2rem;
+      margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+      transition: all 0.2s; position: relative;
+    }
+    .history-item:hover {
+      transform: translateY(-2px); box-shadow: 0 4px 16px rgba(37,99,235,0.12);
+    }
+    .history-item.completed {
+      border-left: 4px solid #10b981;
+    }
+    .history-item.failed {
+      border-left: 4px solid #ef4444;
+    }
+    .history-task-title {
+      font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .history-details {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.8rem; font-size: 0.9rem; color: var(--muted);
+    }
+    .time-chart {
+      background: var(--card-bg); border-radius: 16px; padding: 1.5rem;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+    }
+    .productivity-chart {
+      height: 200px; background: linear-gradient(180deg, rgba(37,99,235,0.1) 0%, transparent 100%);
+      border-radius: 8px; margin-top: 1rem; position: relative;
+    }
+    @media (max-width: 900px) {
+      .history-main { grid-template-columns: 1fr; }
+      .history-header, .history-stats, .history-main { margin: 0 1rem; }
+    }
+    
+    /* Tooltip Styles */
+    .tooltip {
+      position: relative;
+      cursor: help;
+    }
+    
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      z-index: 1000;
+      animation: tooltipFadeIn 0.2s ease;
+      max-width: 250px;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.4;
+    }
+    
+    .tooltip:hover::before {
+      content: '';
+      position: absolute;
+      bottom: 92%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+    }
+    
+    @keyframes tooltipFadeIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <div class="brand"><img src="../assets/logo.png" alt="logo" class="nav-logo"> <span>Mini Task Scheduler</span></div>
+    <div class="navlinks">
+      <a href="dashboard.html">📅 Dashboard</a>
+      <a href="history.html" class="active">📜 Task History</a>
+      <a href="about.html">ℹ️ About</a>
+      <button id="theme-toggle">🌙</button>
+    </div>
+  </nav>
+
+  <div class="history-header">
+    <div>
+      <h1 style="margin:0; font-size:2.2rem; font-weight:800;">Task History</h1>
+      <p style="color:var(--muted); margin:0.5rem 0 0 0;">Track your productivity and completed tasks</p>
+    </div>
+    <div style="display:flex; gap:1rem;">
+      <button onclick="exportHistory()" class="filter-btn">📥 Export</button>
+      <button onclick="clearHistory()" class="filter-btn">🗑️ Clear All</button>
+    </div>
+  </div>
+
+  <div class="history-stats">
+    <div class="stat-card tooltip" data-tooltip="Total number of tasks you have successfully completed">
+      <div style="color:var(--muted); font-weight:600;">Total Completed</div>
+      <div class="stat-number" id="totalCompleted">0</div>
+    </div>
+    <div class="stat-card tooltip" data-tooltip="Tasks completed in the last 7 days from today">
+      <div style="color:var(--muted); font-weight:600;">This Week</div>
+      <div class="stat-number" id="weekCompleted">0</div>
+    </div>
+    <div class="stat-card tooltip" data-tooltip="Percentage of completed tasks vs total tasks created (Completed ÷ Total × 100)">
+      <div style="color:var(--muted); font-weight:600;">Success Rate</div>
+      <div class="stat-number" id="successRate">0%</div>
+    </div>
+    <div class="stat-card tooltip" data-tooltip="Average tasks completed per day (Total completed ÷ days since first task)">
+      <div style="color:var(--muted); font-weight:600;">Avg. per Day</div>
+      <div class="stat-number" id="avgPerDay">0</div>
+    </div>
+  </div>
+
+  <main class="history-main">
+    <section>
+      <div class="card">
+        <h3>📋 Completed Tasks</h3>
+        <div class="history-filters">
+          <button class="filter-btn active" onclick="filterHistory('all')">All</button>
+          <button class="filter-btn" onclick="filterHistory('today')">Today</button>
+          <button class="filter-btn" onclick="filterHistory('week')">This Week</button>
+          <button class="filter-btn" onclick="filterHistory('month')">This Month</button>
+        </div>
+        <div id="historyList">
+          <div style="text-align:center; color:var(--muted); padding:2rem;">
+            No completed tasks yet. Complete some tasks to see history!
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section>
+      <div class="time-chart">
+        <h4>📊 Productivity Chart</h4>
+        <div class="productivity-chart" id="productivityChart">
+          <div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted);">
+            Complete tasks to see chart
+          </div>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top:1.5rem;">
+        <h4>🎯 Quick Stats</h4>
+        <div style="display:flex; flex-direction:column; gap:0.8rem;">
+          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="Hour of day (0-23) when you complete the most tasks">
+            <span>Most Productive Hour:</span>
+            <span id="mostProductiveHour">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="The mood you select most often when creating tasks">
+            <span>Favorite Mood:</span>
+            <span id="favoriteMood">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="Estimated longest consecutive days of productivity (completed tasks ÷ 7)">
+            <span>Longest Streak:</span>
+            <span id="longestStreak">0 days</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="Estimated time saved through better organization (completed tasks × 0.5 hours)">
+            <span>Total Time Saved:</span>
+            <span id="timeSaved">0 hours</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="theme.js"></script>
+  <script src="header.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // History page specific functionality
+    let currentFilter = 'all';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      loadHistory();
+      updateHistoryStats();
+    });
+    
+    function loadHistory() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const completedTasks = tasks.filter(task => task.status === 'completed');
+      const historyList = document.getElementById('historyList');
+      
+      if (completedTasks.length === 0) {
+        historyList.innerHTML = `
+          <div style="text-align:center; color:var(--muted); padding:2rem;">
+            No completed tasks yet. Complete some tasks to see history!
+          </div>
+        `;
+        return;
+      }
+      
+      const filteredTasks = filterTasksByPeriod(completedTasks, currentFilter);
+      
+      historyList.innerHTML = filteredTasks.map(task => `
+        <div class="history-item completed">
+          <div class="history-task-title">
+            <span>${getMoodEmoji(task.mood)}</span>
+            <span>${task.command}</span>
+            <span style="margin-left:auto; font-size:0.8rem; color:var(--success);">✅ Completed</span>
+          </div>
+          <div class="history-details">
+            <div><strong>Time:</strong> ${formatTime(task.time)}</div>
+            <div><strong>Priority:</strong> ${task.priority}</div>
+            <div><strong>Completed:</strong> ${formatDate(task.completedAt)}</div>
+            <div><strong>Mood:</strong> ${task.mood}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function filterTasksByPeriod(tasks, period) {
+      const now = new Date();
+      return tasks.filter(task => {
+        const completedDate = new Date(task.completedAt);
+        switch(period) {
+          case 'today':
+            return completedDate.toDateString() === now.toDateString();
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return completedDate >= weekAgo;
+          case 'month':
+            return completedDate.getMonth() === now.getMonth() && 
+                   completedDate.getFullYear() === now.getFullYear();
+          default:
+            return true;
+        }
+      });
+    }
+    
+    function filterHistory(period) {
+      currentFilter = period;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      loadHistory();
+    }
+    
+    function updateHistoryStats() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const completedTasks = tasks.filter(task => task.status === 'completed');
+      const totalTasks = tasks.length;
+      
+      // Update stat cards
+      document.getElementById('totalCompleted').textContent = completedTasks.length;
+      
+      const weekCompleted = filterTasksByPeriod(completedTasks, 'week').length;
+      document.getElementById('weekCompleted').textContent = weekCompleted;
+      
+      const successRate = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
+      document.getElementById('successRate').textContent = successRate + '%';
+      
+      const avgPerDay = completedTasks.length > 0 ? 
+        Math.round((completedTasks.length / Math.max(1, getTaskSpanDays(completedTasks))) * 10) / 10 : 0;
+      document.getElementById('avgPerDay').textContent = avgPerDay;
+      
+      // Update quick stats
+      updateQuickStats(completedTasks);
+    }
+    
+    function updateQuickStats(completedTasks) {
+      if (completedTasks.length === 0) return;
+      
+      // Most productive hour
+      const hourCounts = {};
+      completedTasks.forEach(task => {
+        const hour = parseInt(task.time.split(':')[0]);
+        hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+      });
+      const mostProductiveHour = Object.keys(hourCounts).reduce((a, b) => 
+        hourCounts[a] > hourCounts[b] ? a : b
+      );
+      document.getElementById('mostProductiveHour').textContent = 
+        mostProductiveHour + ':00 (' + hourCounts[mostProductiveHour] + ' tasks)';
+      
+      // Favorite mood
+      const moodCounts = {};
+      completedTasks.forEach(task => {
+        moodCounts[task.mood] = (moodCounts[task.mood] || 0) + 1;
+      });
+      const favoriteMood = Object.keys(moodCounts).reduce((a, b) => 
+        moodCounts[a] > moodCounts[b] ? a : b
+      );
+      document.getElementById('favoriteMood').textContent = 
+        getMoodEmoji(favoriteMood) + ' ' + favoriteMood + ' (' + moodCounts[favoriteMood] + ')';
+      
+      // Longest streak and time saved (simplified calculations)
+      document.getElementById('longestStreak').textContent = 
+        Math.max(1, Math.floor(completedTasks.length / 7)) + ' days';
+      document.getElementById('timeSaved').textContent = 
+        Math.round(completedTasks.length * 0.5) + ' hours';
+    }
+    
+    function getTaskSpanDays(tasks) {
+      if (tasks.length === 0) return 1;
+      const dates = tasks.map(task => new Date(task.completedAt).getTime());
+      const minDate = Math.min(...dates);
+      const maxDate = Math.max(...dates);
+      return Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+    }
+    
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    
+    function exportHistory() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const completedTasks = tasks.filter(task => task.status === 'completed');
+      
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + "Task,Priority,Mood,Completed Time,Execution Time\n"
+        + completedTasks.map(task => 
+          `"${task.command}","${task.priority}","${task.mood}","${formatDate(task.completedAt)}","${task.time}"`
+        ).join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "task_history.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showToast('History exported successfully!', 'success');
+    }
+    
+    function clearHistory() {
+      if (confirm('Are you sure you want to clear all task history? This cannot be undone.')) {
+        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        tasks = tasks.filter(task => task.status !== 'completed');
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        loadHistory();
+        updateHistoryStats();
+        showToast('History cleared', 'info');
+      }
+    }
+    
+    function getMoodEmoji(mood) {
+      const moods = {
+        excited: '😃',
+        neutral: '😐',
+        dreading: '😫',
+        challenging: '💡',
+        routine: '🔁'
+      };
+      return moods[mood] || '😐';
+    }
+    
+    function formatTime(time) {
+      return new Date(`2000-01-01T${time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    
+    // Toast function for history page
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        background: var(--card-bg); color: var(--text); padding: 1rem 1.5rem;
+        border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-left: 4px solid ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#2563eb'};
+        animation: slideIn 0.3s ease;
+      `;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

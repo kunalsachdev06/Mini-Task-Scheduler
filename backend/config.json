@@ -1,0 +1,4 @@
+{
+  "data_path": "../frontend/data",
+  "poll_interval_sec": 10
+}

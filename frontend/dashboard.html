@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard - Mini Task Scheduler</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .dashboard-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 2.2rem 2.5rem 1.2rem 2.5rem;
+      background: none;
+      margin-bottom: 0.5rem;
+    }
+    .user-info {
+      display: flex; align-items: center; gap: 1.1rem;
+    }
+    .user-avatar {
+      width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg,#2563eb 60%,#10b981 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.7rem; font-weight: 700; box-shadow: 0 2px 12px rgba(37,99,235,0.10);
+    }
+    .algo-select {
+      display: flex; align-items: center; gap: 0.7rem; background: var(--card-bg); border-radius: 12px; padding: 0.7rem 1.2rem; box-shadow: 0 2px 12px rgba(37,99,235,0.07); font-size: 1.08rem; }
+    .algo-select label { font-weight: 600; color: var(--muted); }
+    .algo-select select { font-size: 1.08rem; border-radius: 8px; border: 1px solid #e5e7eb; padding: 0.3rem 0.7rem; }
+    .live-log {
+      background: rgba(37,99,235,0.06); border-radius: 12px; padding: 1.2rem; margin-top: 1.5rem; font-family: 'Fira Mono', monospace; font-size: 1.01rem; min-height: 60px; max-height: 180px; overflow-y: auto; box-shadow: 0 2px 12px rgba(37,99,235,0.06);
+    }
+    .dashboard-main-grid {
+      display: grid; grid-template-columns: 1.1fr 1fr; gap: 2.2rem; align-items: flex-start; margin: 0 2.5rem;
+    }
+    @media (max-width: 900px) {
+      .dashboard-main-grid { grid-template-columns: 1fr; }
+      .dashboard-header, .dashboard-main-grid { margin: 0 1rem; }
+    }
+    .card-actions { display: flex; gap: 0.5rem; }
+    .card-actions button { border: none; background: none; cursor: pointer; font-size: 1.1rem; }
+    .card-actions button.edit { color: #2563eb; }
+    .card-actions button.delete { color: #ef4444; }
+    .card-actions button.run { color: #10b981; }
+    .stat-card { min-width: 120px; }
+    
+    /* Tooltip Styles */
+    .tooltip {
+      position: relative;
+      cursor: help;
+    }
+    
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      z-index: 1000;
+      animation: tooltipFadeIn 0.2s ease;
+      max-width: 250px;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.4;
+    }
+    
+    .tooltip:hover::before {
+      content: '';
+      position: absolute;
+      bottom: 92%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+    }
+    
+    @keyframes tooltipFadeIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+  <nav class="topnav">
+    <div class="brand"><img src="../assets/logo.png" alt="logo" class="nav-logo"> <span>Mini Task Scheduler</span></div>
+    <div class="navlinks">
+      <a href="dashboard.html" class="active">📅 Dashboard</a>
+      <a href="history.html">📜 Task History</a>
+      <a href="about.html">ℹ️ About</a>
+      <button id="theme-toggle">🌙</button>
+    </div>
+  </nav>
+
+  <div class="dashboard-header">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div>
+        <div style="font-weight:700;font-size:1.1rem;">Welcome, <span id="userName">User</span></div>
+        <div style="color:var(--muted);font-size:0.98rem;">Ready to schedule your next task?</div>
+      </div>
+    </div>
+  <!-- Scheduling algorithm selector removed from header -->
+  </div>
+
+  <main class="dashboard-main-grid">
+    <section>
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3>➕ Schedule a New Task</h3>
+        <form id="taskForm" onsubmit="return addTask();">
+          <input type="text" id="taskCommand" placeholder="Task title (eg: Write report)" required>
+          <input type="time" id="taskTime" required>
+          <select id="taskPriority">
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <select id="taskFrequency">
+            <option value="once">Once</option>
+            <option value="daily">Daily</option>
+          </select>
+          <div class="algo-select" style="margin:0.7rem 0 0.7rem 0;">
+            <label for="taskMood">How do you feel about this task?</label>
+            <select id="taskMood" required>
+              <option value="excited">😃 Excited</option>
+              <option value="neutral">😐 Neutral</option>
+              <option value="dreading">😫 Dreading</option>
+              <option value="challenging">💡 Challenging</option>
+              <option value="routine">🔁 Routine</option>
+            </select>
+          </div>
+          <div class="algo-select" style="margin:0.7rem 0 0.7rem 0;">
+            <label for="taskDeadline">Deadline (optional):</label>
+            <input type="date" id="taskDeadline" name="taskDeadline" style="width:auto; min-width:160px;">
+          </div>
+          <button type="submit">Add Task</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>📋 Scheduled Tasks</h3>
+        <table id="taskTable">
+          <thead><tr><th>Command</th><th>Time</th><th>Priority</th><th>Freq</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="taskList"><tr><td colspan="6" style="text-align:center;color:gray">No tasks yet</td></tr></tbody>
+        </table>
+      </div>
+      <div class="live-log" id="liveLog">🚀 Task Scheduler initialized. Add tasks and set reminders to get started!</div>
+      
+      <!-- Test Notification Button (for demo) -->
+      <div style="margin-top: 1rem; text-align: center;">
+        <button onclick="testNotification()" style="background: linear-gradient(90deg, #f59e0b, #fbbf24); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 12px rgba(245,158,11,0.3);">
+          � Demo Fullscreen Alert
+        </button>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem;">
+          Click to demonstrate mobile notification system
+        </div>
+      </div>
+    </section>
+    <section>
+      <div class="card stat-card tooltip" id="prodCard" data-tooltip="Percentage of completed tasks vs total tasks (Completed ÷ Total × 100)"><h4>Productivity</h4><div id="prodVal">—</div></div>
+      <div class="card stat-card tooltip" id="pressCard" data-tooltip="Number of pending tasks still waiting to be completed"><h4>Pressure</h4><div id="pressVal">—</div></div>
+      <div class="card stat-card tooltip" id="heatCard" data-tooltip="Visual representation of task distribution across 24 hours - darker colors mean more tasks scheduled"><h4>Urgency Heatmap</h4><div id="heatmap"></div></div>
+    </section>
+  </main>
+
+<script src="theme.js"></script>
+<script src="script.js"></script>
+<script>
+// Demo: Set user info (replace with real user data)
+const user = localStorage.getItem('username') || 'User';
+document.getElementById('userName').textContent = user;
+document.getElementById('userAvatar').textContent = user[0].toUpperCase();
+</script>
+</body>
+</html>

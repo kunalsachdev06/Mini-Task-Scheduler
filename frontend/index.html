@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" class="light" style="height:100%;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mini Task Scheduler</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body style="min-height:100vh; height:100%; margin:0;">
+  <header class="topnav">
+    <div class="brand" style="font-size:1.3rem; letter-spacing:0.5px;">
+      <img src="../assets/logo.png" alt="logo" class="nav-logo" style="box-shadow:0 2px 8px rgba(37,99,235,0.08); background:white; border-radius:12px;">
+  <span style="font-family:'Inter',sans-serif; font-weight:800; font-size:1.25em; background: linear-gradient(90deg, #2563eb, #3b82f6 60%, #10b981); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Mini Task Scheduler</span>
+    </div>
+    <div class="navlinks">
+  <!-- <a href="dashboard.html">Dashboard</a> -->
+      <a href="history.html">History</a>
+      <a href="about.html">About</a>
+      <a href="login.html" style="background:linear-gradient(90deg,#2563eb,#10b981);color:white;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.08);padding:0.45rem 1.1rem;">Login</a>
+      <button id="theme-toggle">🌙</button>
+    </div>
+  </header>
+  <main style="min-height:80vh;display:flex;align-items:center;justify-content:center;">
+    <section class="card" style="padding:2.5rem 2.5rem 2rem 2.5rem; border-radius:22px; box-shadow:0 8px 32px rgba(37,99,235,0.10); min-width:350px; max-width:420px; text-align:center; animation:fadeIn 1.2s cubic-bezier(.4,0,.2,1);">
+  <h1 style="font-size:2.2rem; font-weight:900; margin-bottom:0.5rem; background:linear-gradient(90deg,#2563eb,#10b981 80%); background-clip:text; -webkit-background-clip:text;-webkit-text-fill-color:transparent;">Welcome!</h1>
+      <p style="font-size:1.15rem; color:var(--muted); margin-bottom:1.5rem;">Your personal productivity companion.<br>Organize, track, and complete your tasks with style.</p>
+  <!-- <a href="dashboard.html" style="display:inline-block; background:linear-gradient(90deg,#2563eb,#10b981);color:white;font-weight:700;padding:0.8rem 2.2rem;border-radius:12px;font-size:1.1rem;box-shadow:0 2px 8px rgba(37,99,235,0.10);text-decoration:none;transition:filter 0.2s;">Go to Dashboard</a> -->
+      <div style="margin-top:2.2rem;">
+        <span style="font-size:0.98rem; color:var(--muted);">New here? <a href="login.html" style="color:#2563eb;font-weight:600;">Login</a> to get started.</span>
+      </div>
+    </section>
+  </main>
+  <script src="theme.js"></script>
+  <script src="header.js"></script>
+</body>
+</html>
