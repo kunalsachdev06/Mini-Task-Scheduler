@@ -2,9 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>Dashboard - Mini Task Scheduler</title>
   <link rel="stylesheet" href="styles.css">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Mobile optimizations -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Task Scheduler">
+  <link rel="apple-touch-icon" href="./assets/logo.png">
+  
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-TileColor" content="#2563eb">
   <style>
     .dashboard-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -29,8 +43,54 @@
       display: grid; grid-template-columns: 1.1fr 1fr; gap: 2.2rem; align-items: flex-start; margin: 0 2.5rem;
     }
     @media (max-width: 900px) {
-      .dashboard-main-grid { grid-template-columns: 1fr; }
-      .dashboard-header, .dashboard-main-grid { margin: 0 1rem; }
+      .dashboard-main-grid { 
+        grid-template-columns: 1fr; 
+        gap: 1.5rem;
+        margin: 0 1rem;
+      }
+      .dashboard-header { 
+        margin: 0 1rem; 
+        padding: 1.5rem 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+      .user-info {
+        justify-content: center;
+      }
+      .card {
+        padding: 1.5rem 1rem;
+      }
+    }
+    
+    /* Mobile touch-friendly forms */
+    @media (max-width: 768px) {
+      form input, form select {
+        padding: 1rem 0.8rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+        min-height: 48px;
+        touch-action: manipulation;
+      }
+      
+      form button {
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        min-height: 52px;
+        touch-action: manipulation;
+      }
+      
+      .algo-select {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+      }
+      
+      .algo-select select {
+        width: 100%;
+        min-height: 48px;
+        font-size: 16px;
+      }
     }
     .card-actions { display: flex; gap: 0.5rem; }
     .card-actions button { border: none; background: none; cursor: pointer; font-size: 1.1rem; }

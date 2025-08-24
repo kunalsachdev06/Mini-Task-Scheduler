@@ -81,6 +81,7 @@ function handleServiceWorkerMessage(event) {
 async function requestNotificationPermission() {
   if (!('Notification' in window)) {
     console.log('This browser does not support notifications');
+    showToast('❌ Your browser doesn\'t support notifications', 'error');
     return false;
   }
 
@@ -93,17 +94,34 @@ async function requestNotificationPermission() {
     return false;
   }
 
+  // On mobile, we need user interaction before requesting permission
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
   // Show a friendly prompt first
-  const userWantsNotifications = await showNotificationPrompt();
+  const userWantsNotifications = await showNotificationPrompt(isMobile);
   
   if (userWantsNotifications) {
-    const permission = await Notification.requestPermission();
-    
-    if (permission === 'granted') {
-      showToast('✅ Notifications enabled! You\'ll get reminders even when the app is closed.', 'success');
-      return true;
-    } else {
-      showToast('Notifications denied. You can enable them later in browser settings.', 'warning');
+    try {
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        showToast('✅ Notifications enabled! You\'ll get reminders even when the app is closed.', 'success');
+        
+        // Test notification on mobile to ensure it works
+        if (isMobile) {
+          setTimeout(() => {
+            showTestNotification();
+          }, 1000);
+        }
+        
+        return true;
+      } else {
+        showToast('Notifications denied. You can enable them later in browser settings.', 'warning');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      showToast('❌ Error setting up notifications. Please try again.', 'error');
       return false;
     }
   }
@@ -111,8 +129,20 @@ async function requestNotificationPermission() {
   return false;
 }
 
+// Show test notification after permission granted
+function showTestNotification() {
+  const testTask = {
+    id: 'welcome',
+    command: '🎉 Notifications are now enabled!',
+    priority: 'High',
+    mood: 'excited'
+  };
+  
+  showBrowserNotification(testTask);
+}
+
 // Show a user-friendly prompt before requesting permission
-function showNotificationPrompt() {
+function showNotificationPrompt(isMobile = false) {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
     modal.className = 'notification-permission-modal';
@@ -122,15 +152,21 @@ function showNotificationPrompt() {
           <h2>🔔 Enable Task Reminders</h2>
         </div>
         <div class="modal-body">
-          <p>Get notified about your tasks even when this website is closed!</p>
+          <p>${isMobile ? 
+            'Get push notifications on your phone even when the browser is closed!' : 
+            'Get notified about your tasks even when this website is closed!'}</p>
           <ul>
             <li>✅ Never miss a scheduled task</li>
-            <li>✅ Works in background</li>
+            <li>✅ Works in background${isMobile ? ' on your phone' : ''}</li>
             <li>✅ Can be disabled anytime</li>
+            ${isMobile ? '<li>✅ Vibration alerts</li>' : ''}
           </ul>
+          ${isMobile ? '<p><small>📱 Perfect for mobile task management!</small></p>' : ''}
         </div>
         <div class="modal-actions">
-          <button id="enableNotifications" class="btn-primary">Enable Notifications</button>
+          <button id="enableNotifications" class="btn-primary">
+            ${isMobile ? '📱 Enable Mobile Alerts' : 'Enable Notifications'}
+          </button>
           <button id="notNow" class="btn-secondary">Not Now</button>
         </div>
       </div>
@@ -138,15 +174,36 @@ function showNotificationPrompt() {
     
     document.body.appendChild(modal);
     
-    document.getElementById('enableNotifications').onclick = () => {
+    // Add touch-friendly event handlers
+    const enableBtn = document.getElementById('enableNotifications');
+    const notNowBtn = document.getElementById('notNow');
+    
+    const enableHandler = (e) => {
+      e.preventDefault();
       document.body.removeChild(modal);
       resolve(true);
     };
     
-    document.getElementById('notNow').onclick = () => {
+    const notNowHandler = (e) => {
+      e.preventDefault();
       document.body.removeChild(modal);
       resolve(false);
     };
+    
+    // Add both click and touch events for mobile compatibility
+    enableBtn.addEventListener('click', enableHandler);
+    enableBtn.addEventListener('touchend', enableHandler);
+    
+    notNowBtn.addEventListener('click', notNowHandler);
+    notNowBtn.addEventListener('touchend', notNowHandler);
+    
+    // Close on backdrop click/touch
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+        resolve(false);
+      }
+    });
   });
 }
 
