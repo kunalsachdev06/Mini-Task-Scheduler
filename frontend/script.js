@@ -1,14 +1,154 @@
 // Task Scheduler - Complete Implementation
 let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
 let notifications = [];
+let serviceWorker = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   loadTasks();
   updateStats();
   startNotificationChecker();
+  initializeServiceWorker();
   requestNotificationPermission();
 });
+
+// Initialize Service Worker for background notifications
+async function initializeServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navig// Demo function for professors - can be called from browser console
+window.demoNotification = function() {
+  const demoTask = {
+    id: 888,
+    command: "Professor Demo - Task Reminder System",
+    time: new Date().toTimeString().slice(0,5),
+    priority: "High",
+    mood: "excited",
+    deadline: new Date().toISOString().split('T')[0]
+  };
+  
+  // Demo both notification types
+  showBrowserNotification(demoTask);
+  showFullscreenNotification(demoTask);
+  logAction("Demo notification triggered (browser + fullscreen)");
+};orker.register('./sw.js');
+      serviceWorker = registration;
+      
+      // Listen for messages from service worker
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+      
+      console.log('Service Worker registered successfully');
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
+    }
+  }
+}
+
+function handleServiceWorkerMessage(event) {
+  const { type, action, taskId } = event.data;
+  
+  if (type === 'NOTIFICATION_ACTION') {
+    const task = tasks.find(t => t.id.toString() === taskId);
+    if (task) {
+      switch (action) {
+        case 'complete':
+          task.status = 'completed';
+          saveTasks();
+          loadTasks();
+          updateStats();
+          break;
+        case 'snooze':
+          // Snooze for 5 minutes
+          const newTime = new Date(Date.now() + 5 * 60 * 1000);
+          task.time = `${newTime.getHours().toString().padStart(2, '0')}:${newTime.getMinutes().toString().padStart(2, '0')}`;
+          task.notified = false;
+          saveTasks();
+          loadTasks();
+          break;
+        case 'dismiss':
+          // Just mark as notified but keep pending
+          task.notified = true;
+          saveTasks();
+          break;
+      }
+    }
+  } else if (type === 'CHECK_TASKS') {
+    checkTaskNotifications();
+  }
+}
+
+// Enhanced notification permission request with better UX
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('This browser does not support notifications');
+    return false;
+  }
+
+  if (Notification.permission === 'granted') {
+    return true;
+  }
+
+  if (Notification.permission === 'denied') {
+    showToast('Notifications are blocked. Please enable them in browser settings for task reminders.', 'error');
+    return false;
+  }
+
+  // Show a friendly prompt first
+  const userWantsNotifications = await showNotificationPrompt();
+  
+  if (userWantsNotifications) {
+    const permission = await Notification.requestPermission();
+    
+    if (permission === 'granted') {
+      showToast('✅ Notifications enabled! You\'ll get reminders even when the app is closed.', 'success');
+      return true;
+    } else {
+      showToast('Notifications denied. You can enable them later in browser settings.', 'warning');
+      return false;
+    }
+  }
+  
+  return false;
+}
+
+// Show a user-friendly prompt before requesting permission
+function showNotificationPrompt() {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'notification-permission-modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🔔 Enable Task Reminders</h2>
+        </div>
+        <div class="modal-body">
+          <p>Get notified about your tasks even when this website is closed!</p>
+          <ul>
+            <li>✅ Never miss a scheduled task</li>
+            <li>✅ Works in background</li>
+            <li>✅ Can be disabled anytime</li>
+          </ul>
+        </div>
+        <div class="modal-actions">
+          <button id="enableNotifications" class="btn-primary">Enable Notifications</button>
+          <button id="notNow" class="btn-secondary">Not Now</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('enableNotifications').onclick = () => {
+      document.body.removeChild(modal);
+      resolve(true);
+    };
+    
+    document.getElementById('notNow').onclick = () => {
+      document.body.removeChild(modal);
+      resolve(false);
+    };
+  });
+}
 
 // Add new task
 function addTask() {
@@ -235,7 +375,11 @@ function checkTaskNotifications() {
       if (timeDiff >= 0 && timeDiff <= 5 * 60 * 1000) {
         task.notified = true;
         saveTasks();
+        
+        // Show both browser notification and fullscreen notification
+        showBrowserNotification(task);
         showFullscreenNotification(task);
+        
         logAction(`Notification sent: ${task.command} (${timeDiff/1000}s after scheduled time)`);
       }
     }
@@ -248,6 +392,42 @@ function getTaskDateTime(timeString) {
   const [hours, minutes] = timeString.split(':').map(Number);
   const taskDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, 0);
   return taskDateTime;
+}
+
+// Show browser notification (works even when app is closed)
+async function showBrowserNotification(task) {
+  if (Notification.permission !== 'granted') {
+    return;
+  }
+
+  const title = '⏰ Task Reminder';
+  const body = `${task.command}\nPriority: ${task.priority} | Mood: ${getMoodEmoji(task.mood)}`;
+  
+  // If service worker is available, use it for better background support
+  if (serviceWorker && serviceWorker.active) {
+    serviceWorker.active.postMessage({
+      type: 'SHOW_NOTIFICATION',
+      title: title,
+      body: body,
+      tag: task.id.toString(),
+      icon: './assets/logo.png'
+    });
+  } else {
+    // Fallback to regular notification
+    const notification = new Notification(title, {
+      body: body,
+      icon: './assets/logo.png',
+      badge: './assets/logo.png',
+      tag: task.id.toString(),
+      vibrate: [200, 100, 200],
+      requireInteraction: true
+    });
+
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  }
 }
 
 function showFullscreenNotification(task) {
@@ -388,8 +568,11 @@ function testNotification() {
     mood: "excited",
     deadline: new Date().toISOString().split('T')[0]
   };
+  
+  // Test both browser and fullscreen notifications
+  showBrowserNotification(testTask);
   showFullscreenNotification(testTask);
-  logAction("Test notification triggered");
+  logAction("Test notification triggered (browser + fullscreen)");
 }
 
 // Demo function for professors - can be called from browser console
