@@ -3,7 +3,7 @@
 
 class ProductionAuthSystem {
   constructor() {
-    this.apiBaseUrl = '/api'; // Will be configured for production
+    this.apiBaseUrl = 'http://localhost:3000/api'; // Backend server URL
     this.currentUser = null;
     this.accessToken = localStorage.getItem('accessToken');
     this.refreshToken = localStorage.getItem('refreshToken');
@@ -207,7 +207,7 @@ class ProductionAuthSystem {
           success: true,
           message: response.message,
           user: response.data.user,
-          redirectTo: 'dashboard.html'
+          redirectTo: 'dashboard-enhanced.html'
         };
       } else {
         throw new Error(response.error || 'Face verification failed');
@@ -297,7 +297,7 @@ class ProductionAuthSystem {
           message: 'Passkey authentication successful!',
           user: completeResponse.data.user,
           authMethod: 'passkey',
-          redirectTo: 'dashboard.html'
+          redirectTo: 'dashboard-enhanced.html'
         };
       } else {
         throw new Error(completeResponse.error || 'Passkey authentication failed');

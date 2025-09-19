@@ -637,6 +637,12 @@
     </div>
   </div>
 
+  <!-- Firebase Configuration -->
+  <script type="module" src="firebase-config.js"></script>
+  
+  <!-- Firebase reCAPTCHA Container -->
+  <div id="recaptcha-container" style="display: none;"></div>
+
   <!-- Load AuthManager -->
   <script src="auth-backend.js"></script>
   
@@ -650,6 +656,7 @@
         this.registrationData = {};
         this.faceData = null;
         this.otpSent = false;
+        this.demoOTP = null; // Store the demo OTP for validation
         
         this.initializeEventListeners();
         this.initializeOTPInputs();
@@ -819,14 +826,78 @@
       }
       
       async sendOTP() {
-        // Display mobile number
-        document.getElementById('mobileDisplay').textContent = this.registrationData.mobile;
-        
-        // In production, this would send actual SMS
-        console.log('📱 Sending OTP to:', this.registrationData.mobile);
-        
-        this.otpSent = true;
-        this.showSuccess('Verification code sent to your mobile number');
+        try {
+          // Display mobile number
+          document.getElementById('mobileDisplay').textContent = this.registrationData.mobile;
+          
+          // For demo purposes, we'll generate a visible OTP
+          // In production, this would call the backend to send actual SMS
+          console.log('📱 Sending OTP to:', this.registrationData.mobile);
+          
+          // Generate a demo OTP that the user can see
+          this.demoOTP = Math.floor(100000 + Math.random() * 900000).toString();
+          
+          // Try to call backend API for OTP (fallback to demo if fails)
+          try {
+            const response = await fetch('http://localhost:3000/api/auth/send-otp', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                mobile: this.registrationData.mobile,
+                email: this.registrationData.email
+              })
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              if (data.otp) {
+                this.demoOTP = data.otp; // Use backend generated OTP
+              }
+            }
+          } catch (error) {
+            console.log('Backend not available, using demo OTP');
+          }
+          
+          this.otpSent = true;
+          
+          // Show the OTP to the user (for demo purposes)
+          const otpDisplay = document.createElement('div');
+          otpDisplay.id = 'demo-otp-display';
+          otpDisplay.style.cssText = `
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: #1976d2;
+            font-weight: bold;
+          `;
+          otpDisplay.innerHTML = `
+            <div style="margin-bottom: 8px;">🔐 <strong>Demo OTP Code</strong></div>
+            <div style="font-size: 1.5rem; letter-spacing: 3px;">${this.demoOTP}</div>
+            <div style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">
+              Use this code for verification (Demo Mode)
+            </div>
+          `;
+          
+          // Insert the OTP display before the OTP input section
+          const step2 = document.getElementById('step2');
+          const otpSection = step2.querySelector('.otp-section');
+          if (otpSection && !document.getElementById('demo-otp-display')) {
+            otpSection.parentNode.insertBefore(otpDisplay, otpSection);
+          }
+          
+          this.showSuccess('Verification code generated! Check the blue box above for your OTP.');
+          
+        } catch (error) {
+          console.error('Error sending OTP:', error);
+          this.showError('Failed to send verification code. Please try again.');
+        }
       }
       
       async handleStep2Next() {
@@ -859,6 +930,12 @@
         
         if (!/^\d{6}$/.test(otp)) {
           this.showError('Verification code must contain only numbers');
+          return false;
+        }
+        
+        // Check against demo OTP
+        if (this.demoOTP && otp !== this.demoOTP) {
+          this.showError('Invalid verification code. Please check the code displayed above.');
           return false;
         }
         
@@ -963,23 +1040,33 @@
         button.disabled = true;
         
         try {
+          // Prepare complete user data for registration
+          const userData = {
+            username: this.registrationData.username,
+            password: this.registrationData.password,
+            email: this.registrationData.email,
+            firstName: this.registrationData.firstName,
+            lastName: this.registrationData.lastName,
+            mobile: this.registrationData.mobile,
+            otp: this.registrationData.otp,
+            faceData: this.faceData
+          };
+          
+          console.log('📋 Registering user:', userData);
+          
           // Register with backend
-          await this.authManager.register(
-            this.registrationData.username,
-            this.registrationData.email,
-            this.registrationData.password,
-            this.registrationData.mobile
-          );
+          await this.authManager.register(userData);
           
           // Show success and redirect
-          this.showSuccess('Account created successfully! Redirecting to login...');
+          this.showSuccess('Account created successfully! Redirecting to dashboard...');
           
           setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = 'dashboard-enhanced.html';
           }, 2000);
           
         } catch (error) {
-          this.showError(error.message);
+          console.error('Registration error:', error);
+          this.showError(error.message || 'Registration failed. Please try again.');
           button.innerHTML = 'Complete Registration';
           button.disabled = false;
         }
@@ -1013,8 +1100,15 @@
         link.style.pointerEvents = 'none';
         
         try {
-          await this.delay(2000);
-          this.showSuccess('New verification code sent!');
+          // Remove old OTP display
+          const oldDisplay = document.getElementById('demo-otp-display');
+          if (oldDisplay) {
+            oldDisplay.remove();
+          }
+          
+          // Generate new OTP and resend
+          await this.sendOTP();
+          
         } catch (error) {
           this.showError('Failed to resend code. Please try again.');
         } finally {
@@ -1064,13 +1158,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       initializeTheme();
       
-      // Check if AuthManager is loaded
-      if (typeof AuthManager !== 'undefined') {
+      // Initialize registration system
+      try {
         new RegistrationManager();
         console.log('✅ Registration system loaded successfully');
-      } else {
-        console.error('❌ AuthManager not loaded');
-        document.getElementById('errorMessage').textContent = 'System not ready. Please refresh the page.';
+      } catch (error) {
+        console.error('❌ Registration system failed to initialize:', error);
+        document.getElementById('errorMessage').textContent = 'System initialization failed. Please refresh the page.';
         document.getElementById('errorMessage').style.display = 'block';
       }
     });

@@ -1,6 +1,7 @@
 /**
  * Enhanced Face Recognition Module for Production
  * Handles face detection, recognition, and biometric authentication
+ * FREE implementation using face-api.js - No API costs!
  */
 
 class FaceRecognition {
@@ -10,44 +11,60 @@ class FaceRecognition {
     this.currentVideo = null;
     this.faceMatcher = null;
     this.models = null;
+    this.faceDescriptors = new Map(); // Store face descriptors for matching
+    this.confidenceThreshold = 0.6; // Similarity threshold for face matching
+    this.isInitialized = false;
+    
+    console.log('🎭 FREE Face Recognition System initialized');
   }
 
   /**
-   * Load face recognition models with fallback CDN options
+   * Load face recognition models with enhanced fallback and caching
    */
   async loadModels() {
     try {
       if (this.modelsLoaded) return true;
 
-      console.log('Loading face recognition models...');
+      console.log('🔄 Loading face recognition models...');
 
-      // Primary CDN (more reliable)
-      const primaryCDN = 'https://justadudewhohacks.github.io/face-api.js/models';
-      const fallbackCDN = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
+      // Multiple CDN options for reliability
+      const cdnOptions = [
+        'https://justadudewhohacks.github.io/face-api.js/models',
+        'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights',
+        '/models', // Local models if available
+        'https://unpkg.com/face-api.js@0.22.2/weights'
+      ];
 
-      try {
-        // Try primary CDN first
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(primaryCDN),
-          faceapi.nets.faceLandmark68Net.loadFromUri(primaryCDN),
-          faceapi.nets.faceRecognitionNet.loadFromUri(primaryCDN),
-          faceapi.nets.faceExpressionNet.loadFromUri(primaryCDN)
-        ]);
-        console.log('Models loaded from primary CDN');
-      } catch (primaryError) {
-        console.warn('Primary CDN failed, trying fallback:', primaryError);
-        
-        // Fallback to secondary CDN
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(fallbackCDN),
-          faceapi.nets.faceLandmark68Net.loadFromUri(fallbackCDN),
-          faceapi.nets.faceRecognitionNet.loadFromUri(fallbackCDN),
-          faceapi.nets.faceExpressionNet.loadFromUri(fallbackCDN)
-        ]);
-        console.log('Models loaded from fallback CDN');
+      let loadSuccess = false;
+      
+      for (const cdn of cdnOptions) {
+        try {
+          console.log(`🔄 Trying CDN: ${cdn}`);
+          
+          await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(cdn),
+            faceapi.nets.faceLandmark68Net.loadFromUri(cdn),
+            faceapi.nets.faceRecognitionNet.loadFromUri(cdn),
+            faceapi.nets.faceExpressionNet.loadFromUri(cdn),
+            faceapi.nets.ageGenderNet.loadFromUri(cdn).catch(() => console.log('Age/Gender model optional')),
+            faceapi.nets.ssdMobilenetv1.loadFromUri(cdn).catch(() => console.log('SSD model optional'))
+          ]);
+          
+          console.log(`✅ Models loaded successfully from: ${cdn}`);
+          loadSuccess = true;
+          break;
+        } catch (error) {
+          console.warn(`⚠️ Failed to load from ${cdn}:`, error.message);
+          continue;
+        }
+      }
+
+      if (!loadSuccess) {
+        throw new Error('Failed to load face recognition models from all CDNs');
       }
 
       this.modelsLoaded = true;
+      this.isInitialized = true;
       console.log('Face recognition models loaded successfully');
       return true;
 

@@ -1,4 +1,76 @@
 {
-  "data_path": "../frontend/data",
-  "poll_interval_sec": 10
+  "database": {
+    "path": "../frontend/data/scheduler.db",
+    "backup_path": "../frontend/data/backups",
+    "connection_pool_size": 10,
+    "timeout_ms": 30000,
+    "wal_mode": true,
+    "synchronous": "NORMAL",
+    "cache_size": 10000,
+    "temp_store": "MEMORY",
+    "auto_vacuum": "INCREMENTAL",
+    "foreign_keys": true,
+    "secure_delete": true
+  },
+  "server": {
+    "host": "localhost",
+    "port": 3000,
+    "max_connections": 100,
+    "request_timeout_ms": 30000,
+    "cors_enabled": true,
+    "cors_origins": ["http://localhost:8080", "http://127.0.0.1:8080"],
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 60,
+      "burst_size": 10
+    }
+  },
+  "authentication": {
+    "session_timeout_hours": 24,
+    "max_login_attempts": 5,
+    "lockout_duration_minutes": 30,
+    "password_hash_rounds": 12,
+    "jwt_secret_rotation_days": 30
+  },
+  "tasks": {
+    "max_tasks_per_user": 1000,
+    "cleanup_completed_after_days": 30,
+    "backup_interval_hours": 6,
+    "poll_interval_sec": 10,
+    "max_reminder_delay_minutes": 60
+  },
+  "face_recognition": {
+    "max_face_data_size_kb": 500,
+    "face_confidence_threshold": 0.7,
+    "max_faces_per_user": 3,
+    "face_data_encryption": true
+  },
+  "notifications": {
+    "push_enabled": true,
+    "email_enabled": true,
+    "sms_enabled": true,
+    "max_notifications_per_hour": 20,
+    "retry_failed_after_minutes": 15
+  },
+  "security": {
+    "encrypt_sensitive_data": true,
+    "audit_log_enabled": true,
+    "ip_whitelist": [],
+    "https_only": false,
+    "csrf_protection": true,
+    "xss_protection": true
+  },
+  "performance": {
+    "enable_compression": true,
+    "cache_static_files": true,
+    "connection_pooling": true,
+    "database_vacuum_schedule": "0 2 * * 0",
+    "log_slow_queries_ms": 1000
+  },
+  "monitoring": {
+    "health_check_enabled": true,
+    "metrics_collection": true,
+    "error_reporting": true,
+    "performance_monitoring": true
+  }
 }

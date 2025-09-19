@@ -1,14 +1,50 @@
 {
-  "name": "Mini Task Scheduler",
+  "name": "Task Scheduler Pro - Smart Productivity Suite",
   "short_name": "TaskScheduler",
-  "description": "Smart task scheduling with notifications",
-  "start_url": "./",
+  "description": "Complete task management with face recognition, push notifications, and AI-powered scheduling. Your personal productivity assistant.",
+  "start_url": "./dashboard-enhanced.html",
+  "scope": "./",
+  "id": "task-scheduler-pro",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait-primary",
-  "background_color": "#f5f7fa",
+  "background_color": "#ffffff",
   "theme_color": "#2563eb",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "business", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "./assets/logo.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/logo.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/logo.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/logo.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/logo.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "./assets/logo.png",
       "sizes": "192x192",
@@ -17,17 +53,105 @@
     },
     {
       "src": "./assets/logo.png",
-      "sizes": "512x512",
+      "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "./assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "./assets/logo.png",
-      "sizes": "540x720",
+      "src": "./assets/screenshot-mobile.png",
+      "sizes": "390x844",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard - Task Management"
+    },
+    {
+      "src": "./assets/screenshot-desktop.png", 
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop Dashboard - Full Feature Set"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "./dashboard-enhanced.html?action=add-task",
+      "icons": [
+        {
+          "src": "./assets/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Today's Tasks",
+      "short_name": "Today",
+      "description": "View tasks for today",
+      "url": "./dashboard-enhanced.html?view=today",
+      "icons": [
+        {
+          "src": "./assets/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Task History",
+      "short_name": "History",
+      "description": "View completed tasks",
+      "url": "./history.html",
+      "icons": [
+        {
+          "src": "./assets/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Quick Registration",
+      "short_name": "Register",
+      "description": "Create new account with face auth",
+      "url": "./register-enhanced.html",
+      "icons": [
+        {
+          "src": "./assets/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "./dashboard-enhanced.html",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "task",
+      "url": "./dashboard-enhanced.html?task=%s"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "handle_links": "preferred",
+  "related_applications": []
 }

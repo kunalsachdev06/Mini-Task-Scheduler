@@ -449,7 +449,7 @@
       <div id="auth-message-container"></div>
       
       <div class="register-link">
-        Don't have an account? <a href="register.html">Sign up here</a>
+        Don't have an account? <a href="register-enhanced.html">Sign up here</a>
       </div>
     </div>
   </div>
@@ -574,7 +574,7 @@
         showAuthMessage('Authentication successful! Redirecting...', 'success');
         
         setTimeout(() => {
-          window.location.href = result.redirectTo || 'dashboard.html';
+          window.location.href = result.redirectTo || 'dashboard-enhanced.html';
         }, 1500);
         
       } catch (error) {
@@ -749,7 +749,7 @@
     
     // Redirect if already logged in
     if (authSystem.isLoggedIn()) {
-      window.location.href = 'dashboard.html';
+      window.location.href = 'dashboard-enhanced.html';
     }
     
     // Focus first input

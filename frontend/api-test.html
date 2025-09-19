@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Task Scheduler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 API Connectivity Test</h1>
+        
+        <div class="test-section">
+            <h3>Health Check</h3>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="health-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Tasks API (No Auth Required for Test)</h3>
+            <button onclick="testGetTasks()">Test GET /api/tasks</button>
+            <button onclick="testPostTask()">Test POST /api/tasks</button>
+            <div id="tasks-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Authentication API</h3>
+            <button onclick="testRegister()">Test Registration</button>
+            <div id="auth-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Server Status</h3>
+            <button onclick="checkServerStatus()">Check All Endpoints</button>
+            <div id="status-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        
+        function showResult(containerId, message, isSuccess = true) {
+            const container = document.getElementById(containerId);
+            container.style.display = 'block';
+            container.className = `result ${isSuccess ? 'success' : 'error'}`;
+            container.textContent = message;
+        }
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const text = await response.text();
+                showResult('health-result', `✅ Health Check Success!\nStatus: ${response.status}\nResponse: ${text}`);
+            } catch (error) {
+                showResult('health-result', `❌ Health Check Failed!\nError: ${error.message}`, false);
+            }
+        }
+        
+        async function testGetTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks`);
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('tasks-result', `✅ GET Tasks Success!\nStatus: ${response.status}\nTasks: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    const text = await response.text();
+                    showResult('tasks-result', `⚠️ GET Tasks Response (${response.status}):\n${text}`, false);
+                }
+            } catch (error) {
+                showResult('tasks-result', `❌ GET Tasks Failed!\nError: ${error.message}`, false);
+            }
+        }
+        
+        async function testPostTask() {
+            try {
+                const testTask = {
+                    title: "Test Task from API Test",
+                    description: "This is a test task created via API test",
+                    priority: "medium",
+                    due_at: Date.now() + (24 * 60 * 60 * 1000) // Tomorrow
+                };
+                
+                const response = await fetch(`${API_BASE}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testTask)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('tasks-result', `✅ POST Task Success!\nStatus: ${response.status}\nResult: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    const text = await response.text();
+                    showResult('tasks-result', `⚠️ POST Task Response (${response.status}):\n${text}`, false);
+                }
+            } catch (error) {
+                showResult('tasks-result', `❌ POST Task Failed!\nError: ${error.message}`, false);
+            }
+        }
+        
+        async function testRegister() {
+            try {
+                const testUser = {
+                    username: "testuser_" + Date.now(),
+                    password: "TestPassword123!",
+                    email: "test@example.com",
+                    firstName: "Test",
+                    lastName: "User",
+                    mobile: "+1234567890"
+                };
+                
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testUser)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('auth-result', `✅ Registration Success!\nStatus: ${response.status}\nResult: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    const text = await response.text();
+                    showResult('auth-result', `⚠️ Registration Response (${response.status}):\n${text}`, false);
+                }
+            } catch (error) {
+                showResult('auth-result', `❌ Registration Failed!\nError: ${error.message}`, false);
+            }
+        }
+        
+        async function checkServerStatus() {
+            const endpoints = [
+                { name: 'Health', url: `${API_BASE}/health`, method: 'GET' },
+                { name: 'Tasks (GET)', url: `${API_BASE}/tasks`, method: 'GET' },
+                { name: 'Auth Register', url: `${API_BASE}/auth/register`, method: 'POST', 
+                  body: JSON.stringify({username: 'test', password: 'test'}) }
+            ];
+            
+            let results = "🔍 Server Endpoint Status Check:\n\n";
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const options = {
+                        method: endpoint.method,
+                        headers: { 'Content-Type': 'application/json' }
+                    };
+                    
+                    if (endpoint.body) {
+                        options.body = endpoint.body;
+                    }
+                    
+                    const response = await fetch(endpoint.url, options);
+                    results += `✅ ${endpoint.name}: ${response.status} ${response.statusText}\n`;
+                } catch (error) {
+                    results += `❌ ${endpoint.name}: Connection Failed (${error.message})\n`;
+                }
+            }
+            
+            showResult('status-result', results);
+        }
+        
+        // Auto-run status check on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkServerStatus();
+        });
+    </script>
+</body>
+</html>
