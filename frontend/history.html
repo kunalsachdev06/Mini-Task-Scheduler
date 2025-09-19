@@ -414,10 +414,16 @@
     </section>
   </main>
 
+  <script src="auth.js"></script>
   <script src="theme.js"></script>
   <script src="header.js"></script>
   <script src="script.js"></script>
   <script>
+    // Authentication guard - redirect if not logged in
+    if (!authSystem.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+    
     // History page specific functionality
     let currentFilter = 'all';
     

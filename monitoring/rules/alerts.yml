@@ -1,0 +1,307 @@
+# Prometheus Alert Rules for Task Scheduler
+# Comprehensive monitoring rules for application, infrastructure, and security
+
+groups:
+  # Application Health Alerts
+  - name: taskscheduler.application
+    rules:
+      # Service availability
+      - alert: TaskSchedulerDown
+        expr: up{job="taskscheduler-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+          service: application
+        annotations:
+          summary: "Task Scheduler application is down"
+          description: "Task Scheduler application has been down for more than 1 minute on instance {{ $labels.instance }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/application-down"
+
+      # High response time
+      - alert: HighResponseTime
+        expr: avg_over_time(http_request_duration_seconds{quantile="0.95"}[5m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          service: application
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for the last 5 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-response-time"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          category: reliability
+          service: application
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-error-rate"
+
+      # Memory usage
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / 1024 / 1024) > 512
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          service: application
+        annotations:
+          summary: "High memory usage detected"
+          description: "Application memory usage is {{ $value }}MB"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-memory-usage"
+
+      # CPU usage
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+          service: application
+        annotations:
+          summary: "High CPU usage detected"
+          description: "Application CPU usage is {{ $value }}%"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-cpu-usage"
+
+  # Database Alerts
+  - name: taskscheduler.database
+    rules:
+      # Database connection failures
+      - alert: DatabaseConnectionFailed
+        expr: increase(database_connection_errors_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+          service: database
+        annotations:
+          summary: "Database connection failures detected"
+          description: "{{ $value }} database connection failures in the last 5 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/database-connection-failed"
+
+      # Database size growth
+      - alert: DatabaseSizeGrowth
+        expr: increase(database_size_bytes[1h]) > 100 * 1024 * 1024
+        for: 0m
+        labels:
+          severity: warning
+          category: database
+          service: database
+        annotations:
+          summary: "Rapid database growth detected"
+          description: "Database grew by {{ $value | humanizeBytes }} in the last hour"
+          runbook_url: "https://docs.yourdomain.com/runbooks/database-size-growth"
+
+      # Slow queries
+      - alert: SlowDatabaseQueries
+        expr: avg_over_time(database_query_duration_seconds{quantile="0.95"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          service: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile query time is {{ $value }}s"
+          runbook_url: "https://docs.yourdomain.com/runbooks/slow-database-queries"
+
+  # Security Alerts
+  - name: taskscheduler.security
+    rules:
+      # Rate limiting triggered
+      - alert: RateLimitingTriggered
+        expr: increase(rate_limit_violations_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          category: security
+          service: application
+        annotations:
+          summary: "Rate limiting frequently triggered"
+          description: "{{ $value }} rate limit violations in the last 5 minutes from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/rate-limiting-triggered"
+
+      # Failed login attempts
+      - alert: HighFailedLoginAttempts
+        expr: increase(failed_login_attempts_total[5m]) > 20
+        for: 1m
+        labels:
+          severity: warning
+          category: security
+          service: application
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "{{ $value }} failed login attempts in the last 5 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/failed-login-attempts"
+
+      # Suspicious IP activity
+      - alert: SuspiciousIPActivity
+        expr: increase(security_incidents_total{incident_type="suspicious_ip"}[10m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+          service: application
+        annotations:
+          summary: "Suspicious IP activity detected"
+          description: "{{ $value }} suspicious activities from IP {{ $labels.source_ip }} in the last 10 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/suspicious-ip-activity"
+
+      # SQL injection attempts
+      - alert: SQLInjectionAttempt
+        expr: increase(security_incidents_total{incident_type="sql_injection"}[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          category: security
+          service: application
+        annotations:
+          summary: "SQL injection attempt detected"
+          description: "SQL injection attempt detected from IP {{ $labels.source_ip }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/sql-injection-attempt"
+
+      # XSS attempts
+      - alert: XSSAttempt
+        expr: increase(security_incidents_total{incident_type="xss_attempt"}[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          category: security
+          service: application
+        annotations:
+          summary: "XSS attempt detected"
+          description: "XSS attempt detected from IP {{ $labels.source_ip }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/xss-attempt"
+
+  # Infrastructure Alerts
+  - name: taskscheduler.infrastructure
+    rules:
+      # Disk space
+      - alert: DiskSpaceHigh
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+          service: system
+        annotations:
+          summary: "Disk space usage is high"
+          description: "Disk space usage is {{ $value }}% on {{ $labels.device }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/disk-space-high"
+
+      # Disk space critical
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 90
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+          service: system
+        annotations:
+          summary: "Disk space usage is critical"
+          description: "Disk space usage is {{ $value }}% on {{ $labels.device }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/disk-space-critical"
+
+      # High system load
+      - alert: HighSystemLoad
+        expr: node_load1 > 2
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+          service: system
+        annotations:
+          summary: "High system load detected"
+          description: "System load is {{ $value }}"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-system-load"
+
+      # Memory usage
+      - alert: HighSystemMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          service: system
+        annotations:
+          summary: "High system memory usage"
+          description: "System memory usage is {{ $value }}%"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-system-memory"
+
+  # SSL Certificate Alerts
+  - name: taskscheduler.ssl
+    rules:
+      # Certificate expiring soon
+      - alert: SSLCertExpiring
+        expr: (ssl_cert_not_after - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+          service: ssl
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.domain }} expires in {{ $value }} days"
+          runbook_url: "https://docs.yourdomain.com/runbooks/ssl-cert-expiring"
+
+      # Certificate expired
+      - alert: SSLCertExpired
+        expr: ssl_cert_not_after < time()
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+          service: ssl
+        annotations:
+          summary: "SSL certificate expired"
+          description: "SSL certificate for {{ $labels.domain }} has expired"
+          runbook_url: "https://docs.yourdomain.com/runbooks/ssl-cert-expired"
+
+  # Business Logic Alerts
+  - name: taskscheduler.business
+    rules:
+      # High user registration rate
+      - alert: HighRegistrationRate
+        expr: rate(user_registrations_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+          service: application
+        annotations:
+          summary: "High user registration rate detected"
+          description: "{{ $value }} user registrations per second in the last 5 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/high-registration-rate"
+
+      # Task creation spike
+      - alert: TaskCreationSpike
+        expr: rate(tasks_created_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: info
+          category: business
+          service: application
+        annotations:
+          summary: "Task creation spike detected"
+          description: "{{ $value }} tasks created per second in the last 5 minutes"
+          runbook_url: "https://docs.yourdomain.com/runbooks/task-creation-spike"
+
+      # No user activity
+      - alert: NoUserActivity
+        expr: rate(user_actions_total[1h]) == 0
+        for: 2h
+        labels:
+          severity: warning
+          category: business
+          service: application
+        annotations:
+          summary: "No user activity detected"
+          description: "No user activity for the last 2 hours"
+          runbook_url: "https://docs.yourdomain.com/runbooks/no-user-activity"

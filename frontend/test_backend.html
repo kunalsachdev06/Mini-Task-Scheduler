@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Test - Task Scheduler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h3 {
+            color: #2563eb;
+            margin-top: 0;
+        }
+        
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .success {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        
+        .error {
+            background-color: #fef2f2;
+            border: 1px solid #f87171;
+            color: #991b1b;
+        }
+        
+        .info {
+            background-color: #eff6ff;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Task Scheduler Backend Test</h1>
+    <p>Testing connection to production C backend server on port 3000</p>
+    
+    <!-- Health Check -->
+    <div class="test-section">
+        <h3>1. Health Check</h3>
+        <button onclick="testHealth()">Test Server Health</button>
+        <div id="health-result" class="result"></div>
+    </div>
+    
+    <!-- Registration Test -->
+    <div class="test-section">
+        <h3>2. Registration Test</h3>
+        <input type="text" id="reg-username" placeholder="Username" value="testuser123">
+        <input type="email" id="reg-email" placeholder="Email" value="test@example.com">
+        <input type="password" id="reg-password" placeholder="Password" value="TestPass123!">
+        <input type="tel" id="reg-mobile" placeholder="Mobile" value="+1234567890">
+        <br>
+        <button onclick="testRegistration()">Test Registration</button>
+        <div id="registration-result" class="result"></div>
+    </div>
+    
+    <!-- Login Test -->
+    <div class="test-section">
+        <h3>3. Login Test (Step 1 - Password)</h3>
+        <input type="text" id="login-username" placeholder="Username" value="testuser123">
+        <input type="password" id="login-password" placeholder="Password" value="TestPass123!">
+        <br>
+        <button onclick="testLogin()">Test Login Step 1</button>
+        <div id="login-result" class="result"></div>
+    </div>
+    
+    <!-- OTP Test -->
+    <div class="test-section">
+        <h3>4. OTP Verification Test (Step 2)</h3>
+        <input type="text" id="otp-code" placeholder="OTP Code" value="">
+        <input type="text" id="session-id" placeholder="Session ID" value="">
+        <br>
+        <button onclick="testOTP()">Test OTP Verification</button>
+        <div id="otp-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.textContent = 'Testing...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                resultDiv.textContent = `✅ SUCCESS\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR\n${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testRegistration() {
+            const resultDiv = document.getElementById('registration-result');
+            resultDiv.textContent = 'Testing registration...';
+            resultDiv.className = 'result info';
+            
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const mobile = document.getElementById('reg-mobile').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, email, password, mobile })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✅ REGISTRATION SUCCESS\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `⚠️ REGISTRATION FAILED\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR\n${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.textContent = 'Testing login...';
+            resultDiv.className = 'result info';
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login/step1`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✅ LOGIN STEP 1 SUCCESS\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                    
+                    // Auto-fill OTP and session ID if available
+                    if (data.otp) {
+                        document.getElementById('otp-code').value = data.otp;
+                    }
+                    if (data.session_id) {
+                        document.getElementById('session-id').value = data.session_id;
+                    }
+                } else {
+                    resultDiv.textContent = `⚠️ LOGIN FAILED\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR\n${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testOTP() {
+            const resultDiv = document.getElementById('otp-result');
+            resultDiv.textContent = 'Testing OTP verification...';
+            resultDiv.className = 'result info';
+            
+            const otp = document.getElementById('otp-code').value;
+            const sessionId = document.getElementById('session-id').value;
+            
+            if (!otp || !sessionId) {
+                resultDiv.textContent = '❌ ERROR\nPlease provide both OTP and Session ID';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login/step2`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ otp, session_id: sessionId })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✅ OTP VERIFICATION SUCCESS\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `⚠️ OTP VERIFICATION FAILED\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR\n${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        // Auto-test health on page load
+        window.addEventListener('load', () => {
+            setTimeout(testHealth, 500);
+        });
+    </script>
+</body>
+</html>

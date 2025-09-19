@@ -161,7 +161,11 @@
         <div style="color:var(--muted);font-size:0.98rem;">Ready to schedule your next task?</div>
       </div>
     </div>
-  <!-- Scheduling algorithm selector removed from header -->
+    <div>
+      <button onclick="logout()" style="background:rgba(239,68,68,0.1);color:#dc2626;border:none;padding:0.6rem 1.2rem;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+        🚪 Logout
+      </button>
+    </div>
   </div>
 
   <main class="dashboard-main-grid">
@@ -223,13 +227,34 @@
     </section>
   </main>
 
+<script src="auth.js"></script>
 <script src="theme.js"></script>
 <script src="script.js"></script>
 <script>
-// Demo: Set user info (replace with real user data)
-const user = localStorage.getItem('username') || 'User';
-document.getElementById('userName').textContent = user;
-document.getElementById('userAvatar').textContent = user[0].toUpperCase();
+// Authentication guard - redirect if not logged in
+if (!authSystem.isLoggedIn()) {
+  window.location.href = 'login.html';
+}
+
+// Set user info from authenticated session
+const currentUser = authSystem.getCurrentUser();
+if (currentUser) {
+  document.getElementById('userName').textContent = currentUser.username;
+  document.getElementById('userAvatar').textContent = currentUser.username[0].toUpperCase();
+} else {
+  // Fallback for demo purposes
+  const user = localStorage.getItem('username') || 'User';
+  document.getElementById('userName').textContent = user;
+  document.getElementById('userAvatar').textContent = user[0].toUpperCase();
+}
+
+// Logout function
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    authSystem.logout();
+    window.location.href = 'index.html';
+  }
+}
 </script>
 </body>
 </html>

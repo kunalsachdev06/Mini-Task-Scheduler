@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <title>Register - Task Scheduler | Secure Sign Up</title>
+  <meta name="description" content="Create your secure Task Scheduler account with 3-factor authentication">
+  
+  <!-- Enhanced Styles -->
+  <link rel="stylesheet" href="styles-enhanced.css">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Mobile optimizations -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Task Scheduler">
+  <link rel="apple-touch-icon" href="./assets/logo.png">
+  
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-TileColor" content="#2563eb">
+  
+  <!-- Face Recognition Library -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  
+  <style>
+    /* Registration-specific styles */
+    .register-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+      position: relative;
+    }
+    
+    .dark .register-container {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    
+    .register-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%232563eb" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>') repeat;
+      pointer-events: none;
+    }
+    
+    .register-card {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-12);
+      box-shadow: var(--shadow-xl);
+      max-width: 600px;
+      width: 100%;
+      border: 1px solid var(--border-color);
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(20px);
+    }
+    
+    .register-header {
+      text-align: center;
+      margin-bottom: var(--space-12);
+    }
+    
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+      border-radius: var(--radius-2xl);
+      margin-bottom: var(--space-6);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .logo-container img {
+      width: 50px;
+      height: 50px;
+      filter: brightness(0) invert(1);
+    }
+    
+    .register-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: var(--space-3);
+      background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .register-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+      margin-bottom: var(--space-2);
+    }
+    
+    .security-badges {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+    }
+    
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--success-500);
+      color: white;
+      border-radius: var(--radius-xl);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .form-section {
+      margin-bottom: var(--space-8);
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: var(--space-6);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .step-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--primary-500);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    
+    .form-group-full {
+      grid-column: 1 / -1;
+    }
+    
+    .password-strength {
+      margin-top: var(--space-2);
+    }
+    
+    .strength-bar {
+      height: 4px;
+      border-radius: var(--radius-sm);
+      background: var(--border-color);
+      overflow: hidden;
+      margin-bottom: var(--space-2);
+    }
+    
+    .strength-fill {
+      height: 100%;
+      transition: all var(--transition-normal);
+      border-radius: var(--radius-sm);
+    }
+    
+    .strength-weak .strength-fill {
+      width: 25%;
+      background: var(--danger-500);
+    }
+    
+    .strength-fair .strength-fill {
+      width: 50%;
+      background: var(--warning-500);
+    }
+    
+    .strength-good .strength-fill {
+      width: 75%;
+      background: var(--primary-500);
+    }
+    
+    .strength-strong .strength-fill {
+      width: 100%;
+      background: var(--success-500);
+    }
+    
+    .strength-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .requirements-list {
+      list-style: none;
+      margin-top: var(--space-3);
+    }
+    
+    .requirements-list li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-1);
+    }
+    
+    .requirements-list li.valid {
+      color: var(--success-500);
+    }
+    
+    .requirements-list li .icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: white;
+    }
+    
+    .requirements-list li.valid .icon {
+      background: var(--success-500);
+    }
+    
+    .camera-section {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+      border: 2px dashed var(--border-color);
+      transition: all var(--transition-normal);
+    }
+    
+    .camera-section.active {
+      border-color: var(--primary-500);
+      background: var(--primary-50);
+    }
+    
+    .dark .camera-section.active {
+      background: var(--primary-900);
+    }
+    
+    .camera-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-500);
+      border-radius: var(--radius-xl);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-4);
+      font-size: 1.5rem;
+      color: white;
+    }
+    
+    #videoElement {
+      width: 100%;
+      max-width: 300px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin: var(--space-4) 0;
+    }
+    
+    .otp-section {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+    }
+    
+    .otp-inputs {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+      margin: var(--space-6) 0;
+    }
+    
+    .otp-input {
+      width: 60px;
+      height: 60px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      background: var(--bg-secondary);
+      transition: all var(--transition-fast);
+    }
+    
+    .otp-input:focus {
+      border-color: var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .success-checkmark {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--success-500);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-left: var(--space-2);
+    }
+    
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--danger-600);
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      margin-top: var(--space-3);
+      font-size: 0.875rem;
+    }
+    
+    .success-message {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success-600);
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      margin-top: var(--space-3);
+      font-size: 0.875rem;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: var(--space-8);
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+      transition: width var(--transition-normal);
+      border-radius: var(--radius-sm);
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      margin-bottom: var(--space-6);
+      transition: color var(--transition-fast);
+    }
+    
+    .back-link:hover {
+      color: var(--primary-600);
+    }
+    
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .register-card {
+        padding: var(--space-8);
+        margin: var(--space-4);
+      }
+      
+      .register-title {
+        font-size: 1.75rem;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .security-badges {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .otp-inputs {
+        gap: var(--space-2);
+      }
+      
+      .otp-input {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .register-container {
+        padding: var(--space-2);
+      }
+      
+      .register-card {
+        padding: var(--space-6);
+      }
+      
+      .logo-container {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .logo-container img {
+        width: 35px;
+        height: 35px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="register-card animate-fade-in">
+      <!-- Back Navigation -->
+      <a href="index.html" class="back-link">
+        ← Back to Home
+      </a>
+      
+      <!-- Progress Bar -->
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 33%"></div>
+      </div>
+      
+      <!-- Header -->
+      <div class="register-header">
+        <div class="logo-container">
+          <img src="./assets/logo.png" alt="Task Scheduler Logo">
+        </div>
+        <h1 class="register-title">Create Your Account</h1>
+        <p class="register-subtitle">Join the future of productivity with secure 3-factor authentication</p>
+        <div class="security-badges">
+          <div class="security-badge">
+            🛡️ 256-bit Encryption
+          </div>
+          <div class="security-badge">
+            📱 SMS Verification
+          </div>
+          <div class="security-badge">
+            👤 Face Recognition
+          </div>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <form id="registrationForm">
+        <!-- Step 1: Basic Information -->
+        <div class="form-section" id="step1">
+          <h2 class="section-title">
+            <span class="step-indicator">1</span>
+            Basic Information
+          </h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName" class="form-label">First Name</label>
+              <input type="text" id="firstName" name="firstName" class="form-input" placeholder="John" required>
+            </div>
+            <div class="form-group">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Doe" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" id="username" name="username" class="form-input" placeholder="johndoe123" required>
+            </div>
+            <div class="form-group">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com" required>
+            </div>
+          </div>
+          
+          <div class="form-group-full">
+            <label for="mobile" class="form-label">Mobile Number</label>
+            <input type="tel" id="mobile" name="mobile" class="form-input" placeholder="+1 (555) 123-4567" required>
+          </div>
+          
+          <div class="form-group-full">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" name="password" class="form-input" placeholder="Create a strong password" required>
+            
+            <div class="password-strength">
+              <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+              </div>
+              <div class="strength-text" id="strengthText">Password strength will appear here</div>
+              
+              <ul class="requirements-list">
+                <li id="req-length">
+                  <span class="icon">✓</span>
+                  At least 8 characters
+                </li>
+                <li id="req-upper">
+                  <span class="icon">✓</span>
+                  One uppercase letter
+                </li>
+                <li id="req-lower">
+                  <span class="icon">✓</span>
+                  One lowercase letter
+                </li>
+                <li id="req-number">
+                  <span class="icon">✓</span>
+                  One number
+                </li>
+                <li id="req-special">
+                  <span class="icon">✓</span>
+                  One special character
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="form-group-full">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Confirm your password" required>
+          </div>
+          
+          <button type="button" id="step1Next" class="btn btn-primary btn-lg w-full">
+            Continue to Mobile Setup
+          </button>
+        </div>
+        
+        <!-- Step 2: Mobile Verification -->
+        <div class="form-section" id="step2" style="display: none;">
+          <h2 class="section-title">
+            <span class="step-indicator">2</span>
+            Mobile Verification
+          </h2>
+          
+          <div class="otp-section">
+            <div class="camera-icon">📱</div>
+            <h3>Verify Your Mobile Number</h3>
+            <p>We've sent a verification code to <strong id="mobileDisplay"></strong></p>
+            
+            <div class="otp-inputs">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+              <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            </div>
+            
+            <p>Didn't receive the code? <a href="#" id="resendOTP" style="color: var(--primary-600);">Resend</a></p>
+          </div>
+          
+          <div style="display: flex; gap: var(--space-4); margin-top: var(--space-8);">
+            <button type="button" id="step2Back" class="btn btn-secondary" style="flex: 1;">
+              ← Back
+            </button>
+            <button type="button" id="step2Next" class="btn btn-primary" style="flex: 2;">
+              Continue to Face Setup
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 3: Face Recognition Setup -->
+        <div class="form-section" id="step3" style="display: none;">
+          <h2 class="section-title">
+            <span class="step-indicator">3</span>
+            Face Recognition Setup
+          </h2>
+          
+          <div class="camera-section">
+            <div class="camera-icon">📷</div>
+            <h3>Set Up Face Recognition</h3>
+            <p>Position your face within the frame and click capture when ready</p>
+            
+            <video id="videoElement" autoplay muted style="display: none;"></video>
+            <canvas id="canvasElement" style="display: none;"></canvas>
+            
+            <div id="cameraControls" style="margin-top: var(--space-6);">
+              <button type="button" id="startCamera" class="btn btn-primary">
+                Start Camera
+              </button>
+            </div>
+            
+            <div id="captureControls" style="display: none; margin-top: var(--space-6);">
+              <button type="button" id="capturePhoto" class="btn btn-success">
+                📷 Capture Photo
+              </button>
+              <button type="button" id="retakePhoto" class="btn btn-secondary">
+                🔄 Retake
+              </button>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: var(--space-4); margin-top: var(--space-8);">
+            <button type="button" id="step3Back" class="btn btn-secondary" style="flex: 1;">
+              ← Back
+            </button>
+            <button type="button" id="step3Next" class="btn btn-primary" style="flex: 2;" disabled>
+              Complete Registration
+            </button>
+          </div>
+        </div>
+      </form>
+      
+      <!-- Messages -->
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+      <div id="successMessage" class="success-message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Load AuthManager -->
+  <script src="auth-backend.js"></script>
+  
+  <script>
+    // Enhanced Registration System
+    class RegistrationManager {
+      constructor() {
+        this.currentStep = 1;
+        this.maxSteps = 3;
+        this.authManager = new AuthManager();
+        this.registrationData = {};
+        this.faceData = null;
+        this.otpSent = false;
+        
+        this.initializeEventListeners();
+        this.initializeOTPInputs();
+        this.initializePasswordValidation();
+        this.initializeFaceRecognition();
+        
+        console.log('✅ Registration Manager initialized');
+      }
+      
+      initializeEventListeners() {
+        // Step navigation
+        document.getElementById('step1Next').addEventListener('click', () => this.handleStep1Next());
+        document.getElementById('step2Back').addEventListener('click', () => this.goToStep(1));
+        document.getElementById('step2Next').addEventListener('click', () => this.handleStep2Next());
+        document.getElementById('step3Back').addEventListener('click', () => this.goToStep(2));
+        document.getElementById('step3Next').addEventListener('click', () => this.handleStep3Next());
+        
+        // Camera controls
+        document.getElementById('startCamera').addEventListener('click', () => this.startCamera());
+        document.getElementById('capturePhoto').addEventListener('click', () => this.capturePhoto());
+        document.getElementById('retakePhoto').addEventListener('click', () => this.retakePhoto());
+        
+        // OTP resend
+        document.getElementById('resendOTP').addEventListener('click', (e) => {
+          e.preventDefault();
+          this.resendOTP();
+        });
+      }
+      
+      initializeOTPInputs() {
+        const otpInputs = document.querySelectorAll('.otp-input');
+        
+        otpInputs.forEach((input, index) => {
+          input.addEventListener('input', (e) => {
+            if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+              otpInputs[index + 1].focus();
+            }
+          });
+          
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+              otpInputs[index - 1].focus();
+            }
+          });
+        });
+      }
+      
+      initializePasswordValidation() {
+        const passwordInput = document.getElementById('password');
+        passwordInput.addEventListener('input', () => this.validatePassword());
+      }
+      
+      validatePassword() {
+        const password = document.getElementById('password').value;
+        const strengthBar = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        
+        const requirements = {
+          length: password.length >= 8,
+          upper: /[A-Z]/.test(password),
+          lower: /[a-z]/.test(password),
+          number: /\d/.test(password),
+          special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        };
+        
+        // Update requirement indicators
+        Object.keys(requirements).forEach(req => {
+          const element = document.getElementById(`req-${req}`);
+          if (requirements[req]) {
+            element.classList.add('valid');
+          } else {
+            element.classList.remove('valid');
+          }
+        });
+        
+        // Calculate strength
+        const validCount = Object.values(requirements).filter(Boolean).length;
+        let strength = 'weak';
+        
+        if (validCount >= 5) strength = 'strong';
+        else if (validCount >= 4) strength = 'good';
+        else if (validCount >= 2) strength = 'fair';
+        
+        // Update UI
+        strengthBar.parentElement.className = `strength-bar strength-${strength}`;
+        strengthText.textContent = `Password strength: ${strength.toUpperCase()}`;
+        strengthText.className = `strength-text text-${strength}`;
+        
+        return validCount >= 4; // Require at least 4 criteria
+      }
+      
+      async handleStep1Next() {
+        const button = document.getElementById('step1Next');
+        
+        if (!this.validateStep1()) return;
+        
+        // Show loading
+        button.innerHTML = '<span class="loading-spinner"></span> Validating...';
+        button.disabled = true;
+        
+        try {
+          // Collect form data
+          this.registrationData = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value,
+            mobile: document.getElementById('mobile').value,
+            password: document.getElementById('password').value
+          };
+          
+          // Simulate server validation
+          await this.delay(1000);
+          
+          // Send OTP
+          await this.sendOTP();
+          
+          this.goToStep(2);
+          
+        } catch (error) {
+          this.showError(error.message);
+        } finally {
+          button.innerHTML = 'Continue to Mobile Setup';
+          button.disabled = false;
+        }
+      }
+      
+      validateStep1() {
+        const fields = ['firstName', 'lastName', 'username', 'email', 'mobile', 'password', 'confirmPassword'];
+        let isValid = true;
+        
+        // Clear previous errors
+        this.hideMessages();
+        
+        // Check required fields
+        for (const field of fields) {
+          const input = document.getElementById(field);
+          if (!input.value.trim()) {
+            this.showError(`${field.replace(/([A-Z])/g, ' $1').toLowerCase()} is required`);
+            input.focus();
+            return false;
+          }
+        }
+        
+        // Validate email
+        const email = document.getElementById('email').value;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          this.showError('Please enter a valid email address');
+          return false;
+        }
+        
+        // Validate password strength
+        if (!this.validatePassword()) {
+          this.showError('Password does not meet security requirements');
+          return false;
+        }
+        
+        // Check password confirmation
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        if (password !== confirmPassword) {
+          this.showError('Passwords do not match');
+          return false;
+        }
+        
+        return true;
+      }
+      
+      async sendOTP() {
+        // Display mobile number
+        document.getElementById('mobileDisplay').textContent = this.registrationData.mobile;
+        
+        // In production, this would send actual SMS
+        console.log('📱 Sending OTP to:', this.registrationData.mobile);
+        
+        this.otpSent = true;
+        this.showSuccess('Verification code sent to your mobile number');
+      }
+      
+      async handleStep2Next() {
+        const button = document.getElementById('step2Next');
+        
+        if (!this.validateOTP()) return;
+        
+        button.innerHTML = '<span class="loading-spinner"></span> Verifying...';
+        button.disabled = true;
+        
+        try {
+          await this.delay(1000);
+          this.goToStep(3);
+        } catch (error) {
+          this.showError(error.message);
+        } finally {
+          button.innerHTML = 'Continue to Face Setup';
+          button.disabled = false;
+        }
+      }
+      
+      validateOTP() {
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const otp = Array.from(otpInputs).map(input => input.value).join('');
+        
+        if (otp.length !== 6) {
+          this.showError('Please enter the complete 6-digit verification code');
+          return false;
+        }
+        
+        if (!/^\d{6}$/.test(otp)) {
+          this.showError('Verification code must contain only numbers');
+          return false;
+        }
+        
+        this.registrationData.otp = otp;
+        return true;
+      }
+      
+      async initializeFaceRecognition() {
+        try {
+          // Load face-api models
+          if (typeof faceapi !== 'undefined') {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+            console.log('✅ Face recognition models loaded');
+          }
+        } catch (error) {
+          console.warn('⚠️ Face recognition not available:', error.message);
+        }
+      }
+      
+      async startCamera() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: 640, 
+              height: 480,
+              facingMode: 'user'
+            } 
+          });
+          
+          const video = document.getElementById('videoElement');
+          video.srcObject = stream;
+          video.style.display = 'block';
+          
+          document.getElementById('cameraControls').style.display = 'none';
+          document.getElementById('captureControls').style.display = 'block';
+          
+          document.querySelector('.camera-section').classList.add('active');
+          
+        } catch (error) {
+          this.showError('Camera access denied. Please allow camera access to continue.');
+        }
+      }
+      
+      capturePhoto() {
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvasElement');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        
+        // Convert to base64
+        this.faceData = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Stop camera
+        const stream = video.srcObject;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        
+        video.style.display = 'none';
+        document.getElementById('captureControls').style.display = 'none';
+        
+        // Show success and enable next button
+        this.showSuccess('Face photo captured successfully!');
+        document.getElementById('step3Next').disabled = false;
+        
+        // Show preview
+        const preview = document.createElement('img');
+        preview.src = this.faceData;
+        preview.style.width = '200px';
+        preview.style.borderRadius = 'var(--radius-lg)';
+        preview.style.marginTop = 'var(--space-4)';
+        document.querySelector('.camera-section').appendChild(preview);
+      }
+      
+      retakePhoto() {
+        // Clear previous capture
+        this.faceData = null;
+        document.getElementById('step3Next').disabled = true;
+        
+        // Remove preview
+        const preview = document.querySelector('.camera-section img');
+        if (preview) preview.remove();
+        
+        // Restart camera
+        this.startCamera();
+      }
+      
+      async handleStep3Next() {
+        const button = document.getElementById('step3Next');
+        
+        if (!this.faceData) {
+          this.showError('Please capture a face photo before continuing');
+          return;
+        }
+        
+        button.innerHTML = '<span class="loading-spinner"></span> Creating Account...';
+        button.disabled = true;
+        
+        try {
+          // Register with backend
+          await this.authManager.register(
+            this.registrationData.username,
+            this.registrationData.email,
+            this.registrationData.password,
+            this.registrationData.mobile
+          );
+          
+          // Show success and redirect
+          this.showSuccess('Account created successfully! Redirecting to login...');
+          
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+          
+        } catch (error) {
+          this.showError(error.message);
+          button.innerHTML = 'Complete Registration';
+          button.disabled = false;
+        }
+      }
+      
+      goToStep(step) {
+        // Hide all steps
+        for (let i = 1; i <= this.maxSteps; i++) {
+          document.getElementById(`step${i}`).style.display = 'none';
+        }
+        
+        // Show target step
+        document.getElementById(`step${step}`).style.display = 'block';
+        this.currentStep = step;
+        
+        // Update progress bar
+        const progress = (step / this.maxSteps) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+        
+        // Clear messages
+        this.hideMessages();
+        
+        console.log(`📋 Moved to step ${step}`);
+      }
+      
+      async resendOTP() {
+        const link = document.getElementById('resendOTP');
+        const originalText = link.textContent;
+        
+        link.textContent = 'Sending...';
+        link.style.pointerEvents = 'none';
+        
+        try {
+          await this.delay(2000);
+          this.showSuccess('New verification code sent!');
+        } catch (error) {
+          this.showError('Failed to resend code. Please try again.');
+        } finally {
+          link.textContent = originalText;
+          link.style.pointerEvents = 'auto';
+        }
+      }
+      
+      showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        
+        // Hide success message
+        document.getElementById('successMessage').style.display = 'none';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => this.hideMessages(), 5000);
+      }
+      
+      showSuccess(message) {
+        const successDiv = document.getElementById('successMessage');
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        
+        // Hide error message
+        document.getElementById('errorMessage').style.display = 'none';
+      }
+      
+      hideMessages() {
+        document.getElementById('errorMessage').style.display = 'none';
+        document.getElementById('successMessage').style.display = 'none';
+      }
+      
+      delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+    }
+
+    // Theme Management
+    function initializeTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.classList.add(savedTheme);
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeTheme();
+      
+      // Check if AuthManager is loaded
+      if (typeof AuthManager !== 'undefined') {
+        new RegistrationManager();
+        console.log('✅ Registration system loaded successfully');
+      } else {
+        console.error('❌ AuthManager not loaded');
+        document.getElementById('errorMessage').textContent = 'System not ready. Please refresh the page.';
+        document.getElementById('errorMessage').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
