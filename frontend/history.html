@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>History - Mini Task Scheduler</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles-enhanced.css">
   
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.webmanifest">
@@ -418,10 +418,21 @@
   <script src="theme.js"></script>
   <script src="header.js"></script>
   <script src="script.js"></script>
+  <script src="auth-backend.js"></script>
   <script>
-    // Authentication guard - redirect if not logged in
-    if (!authSystem.isLoggedIn()) {
-      window.location.href = 'index.html';
+    // Simple auth check for history page
+    function checkAuth() {
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      if (!token) {
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // Check authentication on page load
+    if (!checkAuth()) {
+      // Redirect handled in checkAuth function
     }
     
     // History page specific functionality

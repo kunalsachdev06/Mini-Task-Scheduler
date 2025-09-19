@@ -98,6 +98,8 @@ class AuthManager {
 
     async register(userData) {
         try {
+            console.log('🔄 Attempting registration to:', `${this.baseURL}/register`);
+            
             const response = await fetch(`${this.baseURL}/register`, {
                 method: 'POST',
                 headers: {
@@ -106,16 +108,29 @@ class AuthManager {
                 body: JSON.stringify(userData)
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
             
             if (data.success) {
+                console.log('✅ Registration successful:', data.message);
                 return { success: true, message: data.message };
             } else {
                 throw new Error(data.error || 'Registration failed');
             }
         } catch (error) {
             console.error('Registration error:', error);
-            throw error;
+            
+            // Enhanced error handling
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                throw new Error('Failed to fetch - Backend server not available');
+            } else if (error.message.includes('NetworkError')) {
+                throw new Error('Network error - Please check your connection');
+            } else {
+                throw error;
+            }
         }
     }
 

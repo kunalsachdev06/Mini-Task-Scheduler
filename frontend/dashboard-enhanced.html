@@ -380,11 +380,35 @@
             background: var(--bg-secondary);
             border-radius: var(--radius-lg);
             transition: all var(--transition-fast);
+            position: relative;
         }
 
         .task-item:hover {
             background: var(--bg-tertiary);
             transform: translateX(4px);
+        }
+
+        .task-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .task-drag-handle {
+            cursor: grab;
+            color: var(--text-secondary);
+            font-weight: bold;
+            padding: var(--space-1);
+            border-radius: var(--space-1);
+            transition: all var(--transition-fast);
+        }
+
+        .task-drag-handle:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .task-drag-handle:active {
+            cursor: grabbing;
         }
 
         .task-checkbox {
@@ -420,6 +444,137 @@
             border-radius: var(--space-2);
             font-size: 0.75rem;
             font-weight: 500;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: var(--space-1);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+
+        .task-btn {
+            background: none;
+            border: none;
+            padding: var(--space-1);
+            border-radius: var(--space-1);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+
+        .task-btn:hover {
+            background: var(--bg-tertiary);
+            transform: scale(1.1);
+        }
+
+        .task-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .edit-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-500);
+        }
+
+        .move-up-btn:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-500);
+        }
+
+        .move-down-btn:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-500);
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-500);
+        }
+
+        /* Edit Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--space-1);
+            transition: all var(--transition-fast);
+        }
+
+        .close-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: var(--space-6);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: flex-end;
+            margin-top: var(--space-6);
         }
 
         .priority-high {
@@ -689,6 +844,68 @@
         </main>
     </div>
 
+    <!-- Edit Task Modal -->
+    <div class="modal-overlay" id="editTaskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit Task</h3>
+                <button type="button" class="close-btn" onclick="dashboard.closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <div class="form-group">
+                        <label for="editTaskTitle" class="form-label">Title</label>
+                        <input type="text" id="editTaskTitle" name="title" class="form-input" placeholder="Task title..." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editTaskDescription" class="form-label">Description</label>
+                        <textarea id="editTaskDescription" name="description" class="form-input" rows="3" placeholder="Optional details..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editTaskCategory" class="form-label">Category</label>
+                            <select id="editTaskCategory" name="category" class="form-input">
+                                <option value="work">Work</option>
+                                <option value="personal">Personal</option>
+                                <option value="study">Study</option>
+                                <option value="health">Health</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editTaskPriority" class="form-label">Priority</label>
+                            <select id="editTaskPriority" name="priority" class="form-input">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editTaskDate" class="form-label">Date</label>
+                            <input type="date" id="editTaskDate" name="date" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editTaskTime" class="form-label">Time</label>
+                            <input type="time" id="editTaskTime" name="time" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="dashboard.closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="app.js"></script>
     <script src="auth-free.js"></script>
@@ -709,6 +926,9 @@
                 await this.loadTasks();
                 this.setupEventListeners();
                 this.updateStats();
+                
+                // Initialize push notifications
+                await this.initializePushNotifications();
                 
                 // Update every 30 seconds
                 setInterval(() => {
@@ -739,6 +959,92 @@
                 // Update avatar
                 const avatar = document.getElementById('userAvatar');
                 avatar.textContent = userName.charAt(0).toUpperCase();
+            }
+
+            async initializePushNotifications() {
+                try {
+                    // Check if PushNotificationSystem is available
+                    if (typeof PushNotificationSystem !== 'undefined') {
+                        this.pushNotifications = new PushNotificationSystem();
+                        const initialized = await this.pushNotifications.initialize();
+                        
+                        if (initialized) {
+                            console.log('✅ Push notifications enabled');
+                            this.showNotification('Notifications enabled! You\'ll get reminders for your tasks.', 'success');
+                            
+                            // Subscribe to push notifications
+                            const subscriptionResult = await this.pushNotifications.subscribeToPush();
+                            if (subscriptionResult.success) {
+                                console.log('✅ Push subscription successful');
+                                this.scheduleTaskNotifications();
+                            }
+                        } else {
+                            console.log('⚠️ Push notifications not available');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Push notifications initialization failed:', error);
+                    // Fallback to browser notifications
+                    this.initializeBrowserNotifications();
+                }
+            }
+
+            async initializeBrowserNotifications() {
+                try {
+                    if ('Notification' in window) {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                            console.log('✅ Browser notifications enabled');
+                            this.showNotification('Browser notifications enabled!', 'success');
+                            this.scheduleTaskNotifications();
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Browser notifications failed:', error);
+                }
+            }
+
+            scheduleTaskNotifications() {
+                // Schedule notifications for upcoming tasks
+                this.tasks.forEach(task => {
+                    if (task.due_at && !task.completed) {
+                        const dueTime = new Date(task.due_at);
+                        const now = new Date();
+                        const timeDiff = dueTime.getTime() - now.getTime();
+                        
+                        // Schedule notification 15 minutes before due time
+                        const notificationTime = timeDiff - (15 * 60 * 1000);
+                        
+                        if (notificationTime > 0 && notificationTime < (24 * 60 * 60 * 1000)) { // Within 24 hours
+                            setTimeout(() => {
+                                this.sendTaskNotification(task);
+                            }, notificationTime);
+                        }
+                    }
+                });
+            }
+
+            sendTaskNotification(task) {
+                const title = '📋 Task Reminder';
+                const options = {
+                    body: `Task "${task.title || task.command}" is due in 15 minutes!`,
+                    icon: '/assets/logo.png',
+                    badge: '/assets/logo.png',
+                    tag: `task-${task.id}`,
+                    requireInteraction: true,
+                    actions: [
+                        { action: 'complete', title: 'Mark Complete' },
+                        { action: 'snooze', title: 'Remind Later' }
+                    ]
+                };
+
+                if (this.pushNotifications && this.pushNotifications.isSubscribed) {
+                    // Send via push notification service
+                    this.pushNotifications.sendNotification(title, options);
+                } else if ('Notification' in window && Notification.permission === 'granted') {
+                    // Fallback to browser notification
+                    new Notification(title, options);
+                }
             }
 
             async loadTasks() {
@@ -808,8 +1114,9 @@
                     return;
                 }
 
-                container.innerHTML = tasks.map(task => `
-                    <div class="task-item">
+                container.innerHTML = tasks.map((task, index) => `
+                    <div class="task-item" data-task-id="${task.id || Math.random()}" data-task-index="${index}">
+                        <div class="task-drag-handle" title="Drag to reorder">⋮⋮</div>
                         <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
                                onchange="dashboard.toggleTask(${task.id || Math.random()})">
                         <div class="task-content">
@@ -822,8 +1129,27 @@
                         <div class="task-priority priority-${task.priority || 'medium'}">
                             ${(task.priority || 'medium').toUpperCase()}
                         </div>
+                        <div class="task-actions">
+                            <button class="task-btn edit-btn" onclick="dashboard.editTask(${task.id || Math.random()})" title="Edit task">
+                                ✏️
+                            </button>
+                            <button class="task-btn move-up-btn" onclick="dashboard.moveTask(${index}, ${index - 1})" 
+                                    ${index === 0 ? 'disabled' : ''} title="Move up">
+                                ↑
+                            </button>
+                            <button class="task-btn move-down-btn" onclick="dashboard.moveTask(${index}, ${index + 1})" 
+                                    ${index === tasks.length - 1 ? 'disabled' : ''} title="Move down">
+                                ↓
+                            </button>
+                            <button class="task-btn delete-btn" onclick="dashboard.deleteTask(${task.id || Math.random()})" title="Delete task">
+                                🗑️
+                            </button>
+                        </div>
                     </div>
                 `).join('');
+                
+                // Initialize drag and drop for this container
+                this.initializeDragAndDrop(container);
             }
 
             formatTaskTime(task) {
@@ -898,6 +1224,20 @@
                 document.getElementById('quickAddForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.addTask();
+                });
+
+                // Edit task form
+                document.getElementById('editTaskForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    this.updateTask(formData);
+                });
+
+                // Close modal on overlay click
+                document.getElementById('editTaskModal').addEventListener('click', (e) => {
+                    if (e.target === e.currentTarget) {
+                        this.closeEditModal();
+                    }
                 });
             }
 
@@ -987,6 +1327,153 @@
                 // Show notification
                 const message = task.completed ? 'Task completed! 🎉' : 'Task marked as pending';
                 this.showNotification(message, 'success');
+            }
+
+            async deleteTask(taskId) {
+                if (!confirm('Are you sure you want to delete this task?')) {
+                    return;
+                }
+
+                this.tasks = this.tasks.filter(t => t.id !== taskId);
+                localStorage.setItem('tasks', JSON.stringify(this.tasks));
+
+                try {
+                    await fetch(`/api/tasks/${taskId}`, {
+                        method: 'DELETE'
+                    });
+                } catch (error) {
+                    console.warn('Failed to sync deletion to backend:', error);
+                }
+
+                this.renderTasks();
+                this.updateStats();
+                this.showNotification('Task deleted successfully!', 'success');
+            }
+
+            editTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                // Populate the edit form
+                document.getElementById('editTaskTitle').value = task.title || task.command || '';
+                document.getElementById('editTaskDescription').value = task.description || '';
+                document.getElementById('editTaskCategory').value = task.category || 'other';
+                document.getElementById('editTaskPriority').value = task.priority || 'medium';
+
+                if (task.due_at) {
+                    const dueDate = new Date(task.due_at);
+                    document.getElementById('editTaskDate').value = dueDate.toISOString().split('T')[0];
+                    document.getElementById('editTaskTime').value = dueDate.toTimeString().slice(0, 5);
+                } else {
+                    document.getElementById('editTaskDate').value = '';
+                    document.getElementById('editTaskTime').value = '';
+                }
+
+                // Store the task ID for updating
+                document.getElementById('editTaskForm').dataset.taskId = taskId;
+
+                // Show the modal
+                document.getElementById('editTaskModal').classList.add('active');
+            }
+
+            closeEditModal() {
+                document.getElementById('editTaskModal').classList.remove('active');
+                document.getElementById('editTaskForm').reset();
+                delete document.getElementById('editTaskForm').dataset.taskId;
+            }
+
+            async updateTask(formData) {
+                const taskId = parseInt(document.getElementById('editTaskForm').dataset.taskId);
+                const task = this.tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                // Update task properties
+                task.title = formData.get('title').trim();
+                task.description = formData.get('description').trim();
+                task.category = formData.get('category');
+                task.priority = formData.get('priority');
+
+                const date = formData.get('date');
+                const time = formData.get('time');
+                if (date) {
+                    const dueDate = new Date(`${date}T${time || '09:00'}`);
+                    task.due_at = dueDate.getTime();
+                } else {
+                    task.due_at = null;
+                }
+
+                // Save to localStorage
+                localStorage.setItem('tasks', JSON.stringify(this.tasks));
+
+                // Try to sync to backend
+                try {
+                    await fetch(`/api/tasks/${taskId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(task)
+                    });
+                } catch (error) {
+                    console.warn('Failed to sync update to backend:', error);
+                }
+
+                this.closeEditModal();
+                this.renderTasks();
+                this.updateStats();
+                this.showNotification('Task updated successfully!', 'success');
+            }
+
+            moveTask(fromIndex, toIndex) {
+                if (toIndex < 0 || toIndex >= this.tasks.length) return;
+
+                const [movedTask] = this.tasks.splice(fromIndex, 1);
+                this.tasks.splice(toIndex, 0, movedTask);
+
+                localStorage.setItem('tasks', JSON.stringify(this.tasks));
+                this.renderTasks();
+                this.showNotification('Task moved successfully!', 'success');
+            }
+
+            initializeDragAndDrop(container) {
+                let draggedElement = null;
+                let draggedIndex = null;
+
+                container.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('task-drag-handle')) {
+                        draggedElement = e.target.closest('.task-item');
+                        draggedIndex = parseInt(draggedElement.dataset.taskIndex);
+                        draggedElement.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                });
+
+                container.addEventListener('dragend', (e) => {
+                    if (draggedElement) {
+                        draggedElement.classList.remove('dragging');
+                        draggedElement = null;
+                        draggedIndex = null;
+                    }
+                });
+
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (!draggedElement) return;
+
+                    const targetItem = e.target.closest('.task-item');
+                    if (targetItem && targetItem !== draggedElement) {
+                        const targetIndex = parseInt(targetItem.dataset.taskIndex);
+                        this.moveTask(draggedIndex, targetIndex);
+                    }
+                });
+
+                // Make drag handles draggable
+                container.querySelectorAll('.task-drag-handle').forEach(handle => {
+                    handle.setAttribute('draggable', 'true');
+                });
             }
 
             showNotification(message, type = 'info') {
