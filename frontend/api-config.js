@@ -1,14 +1,4 @@
-// API        // Set API base URL
-        if (this.isDevelopment) {
-            // Local development - use localhost backend
-            this.apiBaseUrl = 'http://localhost:3001/api';
-            this.dataBaseUrl = 'http://localhost:3001/api/data';
-        } else {
-            // Production - route through Netlify proxy to Railway backend
-            // This avoids CORS issues and uses the deployed Railway backend
-            this.apiBaseUrl = '/api';
-            this.dataBaseUrl = '/api/data';
-        }ation for Production/Development
+// API Configuration for Production/Development
 class APIConfig {
     constructor() {
         // Automatically detect if we're in development or production
