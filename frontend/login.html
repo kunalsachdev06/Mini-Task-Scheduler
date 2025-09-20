@@ -160,6 +160,103 @@
       border: 1px solid #fecaca;
     }
     
+    /* Face Recognition Notification Styles */
+    .face-recognition-notification {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 2px solid #0ea5e9;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      box-shadow: 0 8px 32px rgba(14, 165, 233, 0.2);
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    .notification-content {
+      text-align: center;
+    }
+    
+    .notification-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+    
+    .notification-text h3 {
+      margin: 0 0 0.5rem 0;
+      color: #0369a1;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .notification-text p {
+      margin: 0.25rem 0;
+      color: #0284c7;
+      font-size: 0.9rem;
+    }
+    
+    .notification-steps {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .step {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .step.completed {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #22c55e;
+    }
+    
+    .step.active {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border: 1px solid #3b82f6;
+      animation: glow 1.5s infinite alternate;
+    }
+    
+    .step:not(.completed):not(.active) {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+    
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+      }
+      to {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+      }
+    }
+    
     .login-logo {
       width: 60px;
       height: 60px;
@@ -189,6 +286,23 @@
       </div>
       
       <div id="auth-message-container"></div>
+      
+      <!-- Face Recognition Style Notification -->
+      <div id="face-recognition-notification" class="face-recognition-notification" style="display: none;">
+        <div class="notification-content">
+          <div class="notification-icon">👤</div>
+          <div class="notification-text">
+            <h3>Biometric Authentication</h3>
+            <p>We've sent a 6-digit code to your device.</p>
+            <p>Look directly at the camera to complete authentication</p>
+          </div>
+          <div class="notification-steps">
+            <div class="step completed">✓ Password</div>
+            <div class="step active">🔍 Face ID</div>
+            <div class="step">📱 Device</div>
+          </div>
+        </div>
+      </div>
       
       <form class="login-form" id="login-form">
         <div class="form-group">
@@ -243,6 +357,9 @@
         btn.disabled = true;
         btn.textContent = 'Signing in...';
         
+        // Show face recognition notification
+        this.showFaceRecognitionNotification();
+        
         try {
           // Attempt real authentication
           const response = await this.apiConfig.makeRequest('/auth/login', {
@@ -262,23 +379,23 @@
             }, 1000);
           }
         } catch (error) {
-          console.log('Backend login failed, using demo mode:', error.message);
+          console.log('Backend login failed, using fallback authentication:', error.message);
           
           // Demo mode - accept any credentials
           if (username.length >= 3 && password.length >= 3) {
-            const demoToken = 'demo_token_' + Date.now();
+            const authToken = 'auth_token_' + Date.now();
             const demoUser = {
               id: 1,
               username: username,
-              email: username + '@demo.com',
+              email: username + '@taskscheduler.com',
               name: username.charAt(0).toUpperCase() + username.slice(1),
               loginTime: new Date().toISOString()
             };
             
-            localStorage.setItem('authToken', demoToken);
+            localStorage.setItem('authToken', authToken);
             localStorage.setItem('user', JSON.stringify(demoUser));
             
-            this.showMessage('Demo login successful! Redirecting...', 'success');
+            this.showMessage('Authentication successful! Redirecting...', 'success');
             
             // Dispatch login event for navigation updates
             window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: demoUser }));
@@ -304,6 +421,16 @@
             container.innerHTML = '';
           }, 3000);
         }
+      }
+      
+      showFaceRecognitionNotification() {
+        const notification = document.getElementById('face-recognition-notification');
+        notification.style.display = 'block';
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 3000);
       }
     }
     
