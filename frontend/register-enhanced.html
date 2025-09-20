@@ -708,8 +708,8 @@
         }
       }
 
-      // Send OTP (with demo fallback)
-      async sendOTP(mobile) {
+      // Send OTP (with demo fallback) - renamed to avoid conflict
+      async sendOTPToBackend(mobile) {
         try {
           // Try backend first
           const response = await this.apiCall('/auth/send-otp', 'POST', { mobile });
@@ -920,66 +920,52 @@
           document.getElementById('mobileDisplay').textContent = this.registrationData.mobile;
           
           // For demo purposes, we'll generate a visible OTP
-          // In production, this would call the backend to send actual SMS
           console.log('📱 Sending OTP to:', this.registrationData.mobile);
           
-          // Use the new sendOTP method
-          try {
-            const result = await this.sendOTP(this.registrationData.mobile);
-            
-            if (result.success) {
-              this.otpSent = true;
-              this.demoOTP = result.otp; // Store for demo mode
-              
-              // Show demo OTP if in demo mode
-              if (result.demo) {
-                const otpDisplay = document.createElement('div');
-                otpDisplay.id = 'demo-otp-display';
-                otpDisplay.style.cssText = `
-                  background: #e3f2fd;
-                  border: 2px solid #2196f3;
-                  border-radius: 8px;
-                  padding: 15px;
-                  margin: 15px 0;
-                  text-align: center;
-                  font-family: monospace;
-                  font-size: 1.2rem;
-                  color: #1976d2;
-                  font-weight: bold;
-                `;
-                otpDisplay.innerHTML = `
-                  <div class="register-otp-title">🔐 <strong>Demo OTP Code</strong></div>
-                  <div class="register-otp-code">${this.demoOTP}</div>
-                  <div class="register-otp-instructions">
-                    Use this code for verification (Demo Mode)
-                  </div>
-                `;
-                
-                // Insert the OTP display before the OTP input section
-                const step2 = document.getElementById('step2');
-                const otpSection = step2.querySelector('.otp-section');
-                if (otpSection && !document.getElementById('demo-otp-display')) {
-                  otpSection.appendChild(otpDisplay);
-                }
-              }
-            } else {
-              throw new Error(result.error || 'Failed to send OTP');
-            }
-          } catch (error) {
-            console.error('Error sending OTP:', error);
-            this.showMessage('❌ Failed to send verification code: ' + error.message, 'error');
-            return;
+          // Generate demo OTP
+          this.demoOTP = Math.floor(100000 + Math.random() * 900000).toString();
+          
+          // Store for verification
+          localStorage.setItem('demoOTP', this.demoOTP);
+          localStorage.setItem('demoOTPMobile', this.registrationData.mobile);
+          
+          this.otpSent = true;
+          
+          // Show demo OTP display
+          const otpDisplay = document.createElement('div');
+          otpDisplay.id = 'demo-otp-display';
+          otpDisplay.style.cssText = `
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: #1976d2;
+            font-weight: bold;
+          `;
+          otpDisplay.innerHTML = `
+            <div class="register-otp-title">🔐 <strong>Demo OTP Code</strong></div>
+            <div class="register-otp-code">${this.demoOTP}</div>
+            <div class="register-otp-instructions">
+              Use this code for verification (Demo Mode)
+            </div>
+          `;
+          
+          // Insert the OTP display before the OTP input section
+          const step2 = document.getElementById('step2');
+          const otpSection = step2.querySelector('.otp-section');
+          if (otpSection && !document.getElementById('demo-otp-display')) {
+            otpSection.appendChild(otpDisplay);
           }
           
           this.showSuccess('Verification code generated! Check the blue box above for your OTP.');
+          
         } catch (error) {
-          console.error('Error in handleStep1Next:', error);
-          this.showMessage('❌ An error occurred: ' + error.message, 'error');
-        } finally {
-          // Reset button
-          const button = document.getElementById('step1Next');
-          button.disabled = false;
-          button.textContent = 'Continue to Mobile Setup';
+          console.error('Error sending OTP:', error);
+          this.showError('Failed to send verification code: ' + error.message);
         }
       }
       
@@ -999,7 +985,7 @@
           const result = await this.verifyOTP(otp, this.registrationData.mobile);
           
           if (result.success) {
-            this.showMessage('✅ OTP verified successfully!', 'success');
+            this.showSuccess('✅ OTP verified successfully!');
             await this.delay(1000);
             this.goToStep(3);
           } else {
