@@ -632,6 +632,10 @@ pre#logArea { background: rgba(0,0,0,0.03); padding:1rem; border-radius:8px; whi
   background: blue;
 }
 
+.app-heatmap-cell[data-opacity] {
+  opacity: attr(data-opacity number, 1);
+}
+
 /* Header.js styles */
 .header-container {
   display: flex;

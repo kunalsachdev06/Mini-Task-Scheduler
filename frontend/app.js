@@ -98,7 +98,7 @@ function App() {
         {/* Heatmap */}
         <div id="heatmap" className="app-heatmap">
           {heatmap.map((opacity, i) => (
-            <div key={i} className="app-heatmap-cell" style={{ opacity }}></div>
+            <div key={i} className="app-heatmap-cell" data-opacity={opacity}></div>
           ))}
         </div>
       </main>
