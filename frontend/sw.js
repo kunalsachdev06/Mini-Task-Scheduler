@@ -22,7 +22,7 @@ const urlsToCache = [
 // Backend API base (SW cannot access window). Adjust based on host.
 const API_BASE = self.location.hostname.includes('localhost')
   ? 'http://localhost:3000/api'
-  : 'https://task-scheduler-backend-production-c243.up.railway.app/api';
+  : '/api';
 
 // Install event - cache resources
 self.addEventListener('install', event => {
@@ -100,11 +100,15 @@ self.addEventListener('fetch', event => {
           return response;
         });
       })
-      .catch(() => {
+      .catch(async () => {
         // Offline fallback
         if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+          const cached = await caches.match('/index.html');
+          if (cached) return cached;
+          return new Response('<h1>Offline</h1>', { headers: { 'Content-Type': 'text/html' } });
         }
+        // Return empty 503 for others instead of throwing
+        return new Response('', { status: 503, statusText: 'Offline' });
       })
   );
 });

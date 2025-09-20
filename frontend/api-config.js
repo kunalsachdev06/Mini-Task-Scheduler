@@ -9,9 +9,9 @@ class APIConfig {
             this.apiBaseUrl = 'http://localhost:3000/api';
             this.dataBaseUrl = 'http://localhost:3000/api/data';
         } else {
-            // Production - use Railway backend URL
-            this.apiBaseUrl = 'https://task-scheduler-backend-production-c243.up.railway.app/api';
-            this.dataBaseUrl = 'https://task-scheduler-backend-production-c243.up.railway.app/api/data';
+            // Production - route through Netlify proxy to avoid CORS
+            this.apiBaseUrl = '/api';
+            this.dataBaseUrl = '/api/data';
         }
         
         console.log(`🔧 API Config: ${this.isDevelopment ? 'Development' : 'Production'} mode`);
