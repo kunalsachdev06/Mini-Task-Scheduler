@@ -1,3 +1,15 @@
 {
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "html.validate.styles": false,
+    "css.validate": true,
+    "html.suggest.html5": true,
+    "css.lint.compatibleVendorPrefixes": "ignore",
+    "css.lint.vendorPrefix": "ignore", 
+    "css.lint.unknownProperties": "ignore",
+    "html.validate.scripts": true,
+    "files.associations": {
+        "*.html": "html",
+        "*.css": "css",
+        "*.js": "javascript"
+    }
 }
