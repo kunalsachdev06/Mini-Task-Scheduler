@@ -1,0 +1,11 @@
+{
+  "name": "task-scheduler-frontend",
+  "version": "1.0.0",
+  "description": "Task Scheduler Frontend",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "start": "echo 'Static site - use serve or similar'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

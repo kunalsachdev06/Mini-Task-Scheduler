@@ -10,10 +10,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Create app user
+    # Install dependencies
+    RUN npm install --only=production && npm cache clean --force# Create app user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 

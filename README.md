@@ -1,182 +1,380 @@
-# 🚀 Mini Task Scheduler - Production Ready
+# 📋 Mini Task Scheduler# � Mini Task Scheduler
 
-## **Enterprise-Grade Task Management with Advanced Authentication**
 
-[![Production Ready](https://img.shields.io/badge/Production-Ready-brightgreen.svg)](https://github.com) [![Security](https://img.shields.io/badge/Security-3FA%20%2B%20Passkey-blue.svg)](https://github.com) [![PWA](https://img.shields.io/badge/PWA-Enabled-purple.svg)](https://github.com)
 
-A **full-stack, production-ready** task scheduler with **3-Factor Authentication** and **Passkey support**. Built for real users with enterprise-level security.
+A powerful, modern task scheduler with PostgreSQL database, REST API, and PWA frontend.A powerful, modern task scheduler with PostgreSQL database, REST API, and PWA frontend.
 
----
 
-## ✨ **Key Features**
 
-### 🔐 **Advanced Authentication**
-- **3-Factor Authentication**: Password + SMS OTP + Face Recognition
-- **WebAuthn Passkeys**: One-touch biometric login (Face ID, Touch ID, Windows Hello)
-- **Real User Accounts**: Complete registration and account management
-- **Email Verification**: Production-grade user onboarding
+## 🚀 **LIVE DEMO**## 🚀 **LIVE DEMO**
+
+
+
+- **Frontend**: https://mini-task-scheduler.netlify.app- **Frontend**: https://mini-task-scheduler.netlify.app
+
+- **Dashboard**: https://mini-task-scheduler.netlify.app/dashboard- **Dashboard**: https://mini-task-scheduler.netlify.app/dashboard
+
+- **API**: https://task-scheduler-backend-production-c243.up.railway.app/api- **API**: https://task-scheduler-backend-production-c243.up.railway.app/api
+
+
+
+## ✨ **Features**## ✨ **Features**
+
+
+
+- 📝 **Task Management**: Create, edit, delete, and track tasks- 📝 **Task Management**: Create, edit, delete, and track tasks
+
+- 💾 **PostgreSQL Database**: Persistent task storage- 💾 **PostgreSQL Database**: Persistent task storage
+
+- 🔐 **JWT Authentication**: Secure user management- 🔐 **JWT Authentication**: Secure user management
+
+- 📱 **PWA Support**: Install as mobile app- 📱 **PWA Support**: Install as mobile app
+
+- 🎨 **Responsive Design**: Works on all devices- 🎨 **Responsive Design**: Works on all devices
+
+- ⚡ **REST API**: Complete backend API- ⚡ **REST API**: Complete backend API
+
+- 🔄 **Real-time Updates**: Live task synchronization- 🔄 **Real-time Updates**: Live task synchronization
+
+
+
+## 🛠️ **Tech Stack**## ✨ **Key Features**
+
+
+
+### Backend### 🔐 **Advanced Authentication**
+
+- **Node.js** + Express.js- **3-Factor Authentication**: Password + SMS OTP + Face Recognition
+
+- **PostgreSQL** (Railway hosted)- **WebAuthn Passkeys**: One-touch biometric login (Face ID, Touch ID, Windows Hello)
+
+- **JWT** authentication- **Real User Accounts**: Complete registration and account management
+
+- **C Backend Integration** (with JS fallback)- **Email Verification**: Production-grade user onboarding
+
 - **Anti-Spoofing**: Face recognition with liveness detection
 
-### 💼 **Production Infrastructure**
-- **Node.js/Express** backend with security middleware
-- **PostgreSQL** database with proper normalization
-- **Redis** for session management and caching
+### Frontend
+
+- **Vanilla JavaScript**### 💼 **Production Infrastructure**
+
+- **Modern CSS** with animations- **Node.js/Express** backend with security middleware
+
+- **PWA** capabilities- **PostgreSQL** database with proper normalization
+
+- **Responsive** design- **Redis** for session management and caching
+
 - **JWT tokens** with refresh rotation
-- **Rate limiting** and brute force protection
-- **Audit logging** for compliance
 
-### 📱 **Modern Frontend**
+### Deployment- **Rate limiting** and brute force protection
+
+- **Backend**: Railway- **Audit logging** for compliance
+
+- **Frontend**: Netlify
+
+- **Database**: PostgreSQL (Railway)### 📱 **Modern Frontend**
+
 - **Progressive Web App** (PWA) with offline support
-- **Responsive design** for mobile and desktop
+
+## 📁 **Project Structure**- **Responsive design** for mobile and desktop
+
 - **Real-time face recognition** using face-api.js
-- **Dual login methods** - choose 3FA or Passkey
-- **Enhanced UX** with step-by-step authentication flows
 
-### 🎯 **Task Management**
-- Create, edit, and delete tasks
-- Priority levels and categories
-- Due date tracking
-- Progress monitoring
-- Clean, intuitive interface
+```- **Dual login methods** - choose 3FA or Passkey
 
----
+mini_task_schedulerr/- **Enhanced UX** with step-by-step authentication flows
 
-## 🚀 **Quick Start (Production)**
+├── backend/                 # C backend files
 
-### **1. Clone Repository**
-```bash
+│   ├── scheduler.c         # Core C scheduler### 🎯 **Task Management**
+
+│   └── config.json        # Configuration- Create, edit, and delete tasks
+
+├── frontend/               # Frontend web app- Priority levels and categories
+
+│   ├── index.html         # Main page- Due date tracking
+
+│   ├── dashboard-enhanced.html # Task dashboard- Progress monitoring
+
+│   ├── styles-enhanced.css # Styling- Clean, intuitive interface
+
+│   ├── api-config.js      # API configuration
+
+│   └── assets/            # Images and icons---
+
+├── server-c-wrapper.js     # Main Node.js server
+
+├── package.json           # Dependencies## 🚀 **Quick Start (Production)**
+
+├── Dockerfile             # Docker configuration
+
+└── README.md              # This file### **1. Clone Repository**
+
+``````bash
+
 git clone [your-repo-url]
-cd mini_task_schedulerr
+
+## 🚀 **Quick Start**cd mini_task_schedulerr
+
 ```
 
-### **2. Backend Setup**
+### 1. **Use Live App** (Recommended)
+
+Just visit: https://mini-task-scheduler.netlify.app### **2. Backend Setup**
+
 ```bash
-cd backend
+
+### 2. **Local Development**cd backend
+
 npm install
-cp .env.production .env
-# Edit .env with your production values
-node migrations/001_create_tables.js
-npm start
+
+```bashcp .env.production .env
+
+# Clone repository# Edit .env with your production values
+
+git clone https://github.com/kunalsachdev06/Mini-Task-Scheduler.gitnode migrations/001_create_tables.js
+
+cd Mini-Task-Schedulernpm start
+
 ```
 
-### **3. Database Setup**
+# Install dependencies
+
+npm install### **3. Database Setup**
+
 ```sql
-CREATE DATABASE task_scheduler_prod;
-CREATE USER task_user WITH PASSWORD 'your_password';
+
+# Set up environmentCREATE DATABASE task_scheduler_prod;
+
+cp .env.example .envCREATE USER task_user WITH PASSWORD 'your_password';
+
 GRANT ALL PRIVILEGES ON DATABASE task_scheduler_prod TO task_user;
-```
+
+# Start development server```
+
+npm run dev:c-backend
 
 ### **4. Start with Docker (Easiest)**
-```bash
-docker-compose up -d
+
+# Visit http://localhost:3000```bash
+
+```docker-compose up -d
+
 ```
 
-### **5. Access Your App**
-- **Frontend**: `http://localhost` (or your domain)
-- **Backend API**: `http://localhost:3000/api`
-- **Database**: PostgreSQL on port 5432
-- **Redis**: Redis on port 6379
+### 3. **Environment Variables**
 
----
+### **5. Access Your App**
+
+```env- **Frontend**: `http://localhost` (or your domain)
+
+NODE_ENV=development- **Backend API**: `http://localhost:3000/api`
+
+PORT=3000- **Database**: PostgreSQL on port 5432
+
+DATABASE_URL=postgresql://username:password@host:port/database- **Redis**: Redis on port 6379
+
+JWT_SECRET=your-secret-key
+
+FRONTEND_URL=http://localhost:3000---
+
+```
 
 ## 🏗 **Architecture**
 
+## 📚 **API Documentation**
+
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│                 │    │                 │    │                 │
-│   Frontend      │    │   Backend       │    │   Database      │
-│   (PWA)         │    │   (Node.js)     │    │   (PostgreSQL)  │
-│                 │    │                 │    │                 │
+
+### Authentication┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+
+```bash│                 │    │                 │    │                 │
+
+POST /api/auth/register  # Register new user│   Frontend      │    │   Backend       │    │   Database      │
+
+POST /api/auth/login     # Login user│   (PWA)         │    │   (Node.js)     │    │   (PostgreSQL)  │
+
+```│                 │    │                 │    │                 │
+
 │ • React-like UI │◄──►│ • Express.js    │◄──►│ • Users         │
-│ • Face API      │    │ • JWT Auth      │    │ • Tasks         │
-│ • WebAuthn      │    │ • 3FA System    │    │ • Sessions      │
-│ • PWA           │    │ • Passkey API   │    │ • Audit Logs    │
-│                 │    │ • Rate Limiting │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
+
+### Tasks│ • Face API      │    │ • JWT Auth      │    │ • Tasks         │
+
+```bash│ • WebAuthn      │    │ • 3FA System    │    │ • Sessions      │
+
+GET    /api/tasks        # Get all tasks│ • PWA           │    │ • Passkey API   │    │ • Audit Logs    │
+
+POST   /api/tasks        # Create task│                 │    │ • Rate Limiting │    │                 │
+
+PUT    /api/tasks/:id    # Update task└─────────────────┘    └─────────────────┘    └─────────────────┘
+
+DELETE /api/tasks/:id    # Delete task                                │
+
+```                                ▼
+
                        ┌─────────────────┐
-                       │                 │
-                       │     Redis       │
-                       │   (Sessions)    │
-                       │                 │
+
+### Health                       │                 │
+
+```bash                       │     Redis       │
+
+GET /api/health          # Server health check                       │   (Sessions)    │
+
+```                       │                 │
+
                        │ • Session Store │
-                       │ • Rate Limiting │
+
+## 🔧 **Development**                       │ • Rate Limiting │
+
                        │ • Caching       │
-                       │                 │
-                       └─────────────────┘
-```
+
+### Prerequisites                       │                 │
+
+- Node.js 18+                       └─────────────────┘
+
+- PostgreSQL (optional, SQLite fallback)```
+
+- GCC (optional, for C backend)
 
 ---
 
-## 🔐 **Authentication Methods**
+### Available Scripts
 
-### **Method 1: 3-Factor Authentication**
-1. **Password** verification
-2. **SMS OTP** to registered mobile
-3. **Face Recognition** scan
+```bash## 🔐 **Authentication Methods**
 
-### **Method 2: Passkey Login (Premium)**
-1. **One-touch** biometric authentication
-2. **FIDO2/WebAuthn** standard
+npm start              # Production server
+
+npm run dev:c-backend  # Development with C backend### **Method 1: 3-Factor Authentication**
+
+npm run compile-c      # Compile C backend1. **Password** verification
+
+npm test              # Run tests2. **SMS OTP** to registered mobile
+
+```3. **Face Recognition** scan
+
+
+
+### Database Setup### **Method 2: Passkey Login (Premium)**
+
+1. **PostgreSQL**: Set `DATABASE_URL` environment variable1. **One-touch** biometric authentication
+
+2. **SQLite**: Automatic fallback (creates local database)2. **FIDO2/WebAuthn** standard
+
 3. **Device-bound** cryptographic keys
 
+## 🚢 **Deployment**
+
 ### **Why Both Methods?**
-- **Passkey**: Faster, more secure, modern experience
-- **3FA**: Universal compatibility, familiar to users
-- **User Choice**: Let users pick their preferred method
+
+### Railway (Backend)- **Passkey**: Faster, more secure, modern experience
+
+```bash- **3FA**: Universal compatibility, familiar to users
+
+# Install Railway CLI- **User Choice**: Let users pick their preferred method
+
+npm install -g @railway/cli
 
 ---
 
-## 📁 **Project Structure**
+# Login and deploy
 
-```
-mini_task_schedulerr/
+railway login## 📁 **Project Structure**
+
+railway init
+
+railway up```
+
+```mini_task_schedulerr/
+
 ├── 📁 backend/                 # Node.js API server
-│   ├── 📄 server.js           # Main Express application
-│   ├── 📄 package.json        # Dependencies & scripts
-│   ├── 📁 routes/             # API route handlers
-│   │   ├── 📄 auth.js         # 3FA authentication
+
+### Netlify (Frontend)│   ├── 📄 server.js           # Main Express application
+
+```bash│   ├── 📄 package.json        # Dependencies & scripts
+
+# Install Netlify CLI│   ├── 📁 routes/             # API route handlers
+
+npm install -g netlify-cli│   │   ├── 📄 auth.js         # 3FA authentication
+
 │   │   └── 📄 passkey.js      # WebAuthn passkeys
-│   ├── 📁 migrations/         # Database migrations
-│   ├── 📁 middleware/         # Security middleware
-│   └── 📄 .env.production     # Environment config
-│
+
+# Login and deploy│   ├── 📁 migrations/         # Database migrations
+
+netlify login│   ├── 📁 middleware/         # Security middleware
+
+netlify deploy --prod --dir=frontend│   └── 📄 .env.production     # Environment config
+
+```│
+
 ├── 📁 frontend/               # Progressive Web App
-│   ├── 📄 index.html         # Landing page
+
+## 📱 **PWA Installation**│   ├── 📄 index.html         # Landing page
+
 │   ├── 📄 login-production.html    # Production login
-│   ├── 📄 signup-production.html   # User registration
-│   ├── 📄 dashboard.html     # Main task interface
-│   ├── 📄 auth-production.js # Authentication client
+
+1. Visit the app in a mobile browser│   ├── 📄 signup-production.html   # User registration
+
+2. Look for "Add to Home Screen" prompt│   ├── 📄 dashboard.html     # Main task interface
+
+3. Or use browser menu → "Install App"│   ├── 📄 auth-production.js # Authentication client
+
 │   ├── 📄 face-recognition-production.js  # Face API
-│   └── 📄 styles.css         # Responsive styling
+
+## 🤝 **Contributing**│   └── 📄 styles.css         # Responsive styling
+
 │
-├── 📄 docker-compose.yml      # Complete stack deployment
-├── 📄 Dockerfile             # Container configuration
-├── 📄 PRODUCTION_DEPLOYMENT.md  # Setup guide
-└── 📄 README.md              # This file
-```
 
----
+1. Fork the repository├── 📄 docker-compose.yml      # Complete stack deployment
 
-## 🛠 **Technology Stack**
+2. Create feature branch: `git checkout -b feature-name`├── 📄 Dockerfile             # Container configuration
 
-### **Backend**
+3. Commit changes: `git commit -m 'Add feature'`├── 📄 PRODUCTION_DEPLOYMENT.md  # Setup guide
+
+4. Push to branch: `git push origin feature-name`└── 📄 README.md              # This file
+
+5. Submit pull request```
+
+
+
+## 📄 **License**---
+
+
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.## 🛠 **Technology Stack**
+
+
+
+## 🔗 **Links**### **Backend**
+
 - **Node.js 18+** - Runtime environment
-- **Express.js** - Web framework
-- **PostgreSQL 14+** - Primary database
-- **Redis 6+** - Session store & caching
-- **JWT** - Token-based authentication
+
+- **Live App**: https://mini-task-scheduler.netlify.app- **Express.js** - Web framework
+
+- **Repository**: https://github.com/kunalsachdev06/Mini-Task-Scheduler- **PostgreSQL 14+** - Primary database
+
+- **Railway Backend**: https://task-scheduler-backend-production-c243.up.railway.app- **Redis 6+** - Session store & caching
+
+- **Issues**: https://github.com/kunalsachdev06/Mini-Task-Scheduler/issues- **JWT** - Token-based authentication
+
 - **bcrypt** - Password hashing
-- **Helmet** - Security headers
+
+## 👨‍💻 **Author**- **Helmet** - Security headers
+
 - **Winston** - Logging
 
-### **Frontend**
-- **Vanilla JavaScript** - No framework dependencies
+**Kunal Sachdev**
+
+- GitHub: [@kunalsachdev06](https://github.com/kunalsachdev06)### **Frontend**
+
+- Email: kunal.sachdev06@gmail.com- **Vanilla JavaScript** - No framework dependencies
+
 - **face-api.js** - Face recognition
-- **WebAuthn API** - Passkey authentication
+
+---- **WebAuthn API** - Passkey authentication
+
 - **PWA** - Progressive Web App features
-- **CSS Grid/Flexbox** - Responsive layout
+
+⭐ **Star this repo if you find it helpful!**- **CSS Grid/Flexbox** - Responsive layout
 
 ### **Security**
 - **3-Factor Authentication** - Multi-layer security
