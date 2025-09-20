@@ -1,73 +1,30 @@
 version: '3.8'
 
 services:
-  # Main application
+  # Main Task Scheduler Application
   app:
     build: .
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://taskuser:taskpass@postgres:5432/task_scheduler
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - postgres
-      - redis
+      - JWT_SECRET=${JWT_SECRET:-your-secure-jwt-secret}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_EMAIL=${VAPID_EMAIL}
     volumes:
-      - ./logs:/app/logs
-      - ./uploads:/app/uploads
+      - app_database:/app/database
+      - app_logs:/app/logs
     restart: unless-stopped
-    networks:
-      - app-network
-
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: task_scheduler
-      POSTGRES_USER: taskuser
-      POSTGRES_PASSWORD: taskpass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/migrations:/docker-entrypoint-initdb.d
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
-    networks:
-      - app-network
-
-  # Redis for sessions and caching
-  redis:
-    image: redis:7-alpine
-    command: redis-server --appendonly yes --requirepass redispass
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    networks:
-      - app-network
-
-  # Nginx reverse proxy
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./frontend:/usr/share/nginx/html
-      - ./ssl:/etc/nginx/ssl
-    depends_on:
-      - app
-    restart: unless-stopped
-    networks:
-      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
-  postgres_data:
-  redis_data:
-
-networks:
+  app_database:
+  app_logs:
   app-network:
     driver: bridge

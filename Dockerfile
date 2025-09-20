@@ -1,36 +1,30 @@
-# Use Node.js 18 LTS
+# Use Node.js 18 Alpine image
 FROM node:18-alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apk add --no-cache \
-    postgresql-client \
-    redis \
-    curl
-
 # Copy package files
-COPY backend/package*.json ./
+COPY package*.json ./
 
-# Install Node.js dependencies
+# Install dependencies
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy backend source code
-COPY backend/ ./
-
-# Create logs directory
-RUN mkdir -p logs
-
-# Create non-root user
+# Create app user
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S taskscheduler -u 1001
+    adduser -S nodejs -u 1001
 
-# Change ownership of app directory
-RUN chown -R taskscheduler:nodejs /app
+# Copy application code
+COPY --chown=nodejs:nodejs . .
+
+# Create database directory
+RUN mkdir -p database && chown nodejs:nodejs database
 
 # Switch to non-root user
-USER taskscheduler
+USER nodejs
 
 # Expose port
 EXPOSE 3000
