@@ -168,6 +168,43 @@
             font-size: 0.875rem;
         }
 
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .theme-icon {
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .theme-toggle:hover .theme-icon {
+            transform: rotate(15deg);
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            border-color: var(--gray-600);
+        }
+
+        [data-theme="dark"] .theme-toggle:hover {
+            background: var(--gray-700);
+            border-color: var(--gray-500);
+        }
+
         .dashboard-main {
             padding: var(--space-8);
             max-width: 1400px;
@@ -694,6 +731,9 @@
                 </nav>
             </div>
             <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <span class="theme-icon" id="themeIcon">🌙</span>
+                </button>
                 <div class="user-menu">
                     <div class="user-avatar" id="userAvatar">U</div>
                     <span id="userName">User</span>
@@ -907,8 +947,94 @@
     </div>
 
     <!-- Scripts -->
+    <script src="api-config.js"></script>
     <script src="app.js"></script>
-    <script src="auth-free.js"></script>
+    
+    <!-- API Helper Functions -->
+    <script>
+        // Initialize API
+        const api = new APIConfig();
+        
+        // API Helper Functions
+        window.apiHelpers = {
+            async getTasks() {
+                const response = await fetch(api.getEndpoint('/tasks'), {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            },
+            
+            async createTask(taskData) {
+                const response = await fetch(api.getEndpoint('/tasks'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            },
+            
+            async updateTask(taskId, taskData) {
+                const response = await fetch(api.getEndpoint(`/tasks/${taskId}`), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            },
+            
+            async deleteTask(taskId) {
+                const response = await fetch(api.getEndpoint(`/tasks/${taskId}`), {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            }
+        };
+    </script>
+    
+    <!-- Authentication Check -->
+    <script>
+        // Check if user is authenticated (basic check for demo)
+        if (!sessionStorage.getItem('isLoggedIn') && !localStorage.getItem('skipAuth')) {
+            // For demo purposes, set a flag to skip auth
+            localStorage.setItem('skipAuth', 'true');
+            sessionStorage.setItem('isLoggedIn', 'true');
+            sessionStorage.setItem('currentUser', JSON.stringify({
+                id: 1,
+                username: 'demo',
+                email: 'demo@example.com'
+            }));
+        }
+    </script>
     <script src="push-notifications.js"></script>
     
     <script>
@@ -1052,23 +1178,21 @@
                     // Show loading
                     document.getElementById('refreshSpinner').style.display = 'inline-block';
                     
-                    // Load tasks from backend or localStorage
-                    const response = await fetch('/api/tasks');
-                    if (response.ok) {
-                        this.tasks = await response.json();
-                    } else {
-                        // Fallback to localStorage
-                        this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-                    }
+                    // Load tasks from new API
+                    this.tasks = await window.apiHelpers.getTasks();
                     
                     this.renderTasks();
                     this.updateStats();
                     
                 } catch (error) {
                     console.error('Failed to load tasks:', error);
-                    // Use localStorage fallback
+                    
+                    // Fallback to localStorage
                     this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
                     this.renderTasks();
+                    this.updateStats();
+                    
+                    this.showNotification('Using offline data - some features may be limited', 'warning');
                 } finally {
                     document.getElementById('refreshSpinner').style.display = 'none';
                 }
@@ -1253,6 +1377,34 @@
                 document.getElementById('addTaskSpinner').style.display = 'inline-block';
 
                 try {
+                    const taskData = {
+                        title: title.trim(),
+                        description: description.trim(),
+                        priority: priority,
+                        category: 'General',
+                        due_at: dueDate ? new Date(dueDate).toISOString() : null
+                    };
+
+                    // Create task via API
+                    const result = await window.apiHelpers.createTask(taskData);
+                    
+                    if (result.success) {
+                        // Reset form
+                        document.getElementById('quickAddForm').reset();
+
+                        // Refresh tasks from server
+                        await this.loadTasks();
+
+                        // Show success notification
+                        this.showNotification('Task added successfully!', 'success');
+                    } else {
+                        throw new Error(result.message || 'Failed to create task');
+                    }
+
+                } catch (error) {
+                    console.error('Failed to add task:', error);
+                    
+                    // Fallback: add to localStorage
                     const newTask = {
                         id: Date.now(),
                         title: title.trim(),
@@ -1264,36 +1416,13 @@
                         category: 'General'
                     };
 
-                    // Add to local array
                     this.tasks.unshift(newTask);
-
-                    // Save to localStorage
                     localStorage.setItem('tasks', JSON.stringify(this.tasks));
-
-                    // Try to save to backend
-                    try {
-                        await fetch('/api/tasks', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(newTask)
-                        });
-                    } catch (error) {
-                        console.warn('Failed to sync to backend:', error);
-                    }
-
-                    // Reset form
-                    document.getElementById('quickAddForm').reset();
-
-                    // Refresh display
+                    
                     this.renderTasks();
                     this.updateStats();
-
-                    // Show success notification
-                    this.showNotification('Task added successfully!', 'success');
-
-                } catch (error) {
-                    console.error('Failed to add task:', error);
-                    this.showNotification('Failed to add task', 'error');
+                    
+                    this.showNotification('Task added (offline mode)', 'warning');
                 } finally {
                     document.getElementById('addTaskSpinner').style.display = 'none';
                 }
@@ -1511,22 +1640,82 @@
             }
         }
 
-        // Initialize dashboard
-        const dashboard = new DashboardManager();
+        // Initialize dashboard function
+        function initializeDashboard() {
+            // Initialize dashboard
+            const dashboard = new DashboardManager();
 
-        // Global functions
-        function refreshTasks() {
-            dashboard.loadTasks();
+            // Global functions
+            window.refreshTasks = function() {
+                dashboard.loadTasks();
+            }
+            
+            // Make dashboard available globally for onclick handlers
+            window.dashboard = dashboard;
         }
 
         // Set up theme handling
         function initializeTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.classList.add(savedTheme);
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            if (newTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const themeIcon = document.getElementById('themeIcon');
+            if (themeIcon) {
+                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+        }
+
+        // Authentication check function
+        function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                // Redirect to login if not authenticated
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
         }
 
         // Initialize theme on load
-        document.addEventListener('DOMContentLoaded', initializeTheme);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication first
+            if (!checkAuthentication()) {
+                return; // Stop execution if not authenticated
+            }
+
+            initializeTheme();
+            
+            // Set up theme toggle button
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+
+            // Initialize dashboard only if authenticated
+            initializeDashboard();
+        });
     </script>
 </body>
 </html>

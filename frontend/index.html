@@ -259,8 +259,8 @@
     </a>
     <div class="navlinks">
       <a href="index.html" class="active">Home</a>
-      <a href="dashboard-enhanced.html">Dashboard</a>
-      <a href="history.html">History</a>
+      <a href="dashboard-enhanced.html" id="dashboardLink" style="display: none;">Dashboard</a>
+      <a href="history.html" id="historyLink" style="display: none;">History</a>
       <a href="about.html">About</a>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
         <span id="theme-icon">🌙</span>
@@ -505,6 +505,26 @@
       });
     }
     
+    // Check authentication and show/hide navigation links
+    function checkAuthenticationForNavigation() {
+      const token = localStorage.getItem('authToken');
+      const dashboardLink = document.getElementById('dashboardLink');
+      const historyLink = document.getElementById('historyLink');
+      
+      if (token && dashboardLink && historyLink) {
+        dashboardLink.style.display = 'inline-block';
+        historyLink.style.display = 'inline-block';
+      }
+    }
+
+    // Listen for login events to update navigation
+    window.addEventListener('userLoggedIn', checkAuthenticationForNavigation);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'authToken') {
+        checkAuthenticationForNavigation();
+      }
+    });
+    
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
       initializeTheme();
@@ -514,6 +534,7 @@
       handleVisibilityChange();
       logPerformanceMetrics();
       registerServiceWorker();
+      checkAuthenticationForNavigation(); // Add auth check
       
       console.log('🎉 Task Scheduler initialized successfully!');
     });
