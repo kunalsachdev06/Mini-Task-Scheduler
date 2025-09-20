@@ -50,7 +50,10 @@ let pool;
 
 // Initialize database
 async function initializeDatabase() {
+    console.log('🔧 Initializing database...');
+    
     if (isPostgreSQL) {
+        console.log('🐘 Setting up PostgreSQL connection...');
         // PostgreSQL setup
         pool = new Pool({
             connectionString: process.env.DATABASE_URL,
@@ -58,8 +61,9 @@ async function initializeDatabase() {
         });
         
         try {
-            await pool.query('SELECT NOW()');
+            const result = await pool.query('SELECT NOW()');
             console.log('✅ Connected to PostgreSQL database');
+            console.log('📅 Database time:', result.rows[0].now);
             
             // Create tables for PostgreSQL
             const tables = [
@@ -693,21 +697,39 @@ app.use((err, req, res, next) => {
 async function startServer() {
     try {
         console.log('🚀 Initializing Task Scheduler Server...');
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`🔌 Port: ${PORT}`);
+        console.log(`💾 Database URL: ${process.env.DATABASE_URL ? 'SET ✅' : 'NOT SET ❌'}`);
+        console.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? 'SET ✅' : 'NOT SET ❌'}`);
         
         // Initialize database
         await initializeDatabase();
         
-        // Ensure C backend is ready
-        await cBackend.ensureCompiledBinary();
+        // Ensure C backend is ready (but don't fail if it's not available)
+        try {
+            await cBackend.ensureCompiledBinary();
+            console.log('🎯 C Backend: Ready');
+        } catch (cError) {
+            console.warn('⚠️ C Backend: Not available, using fallback mode');
+        }
         
         // Start server
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, '0.0.0.0', () => {
             console.log(`✅ Task Scheduler Server running on port ${PORT}`);
             console.log(`📱 Frontend: http://localhost:${PORT}`);
             console.log(`🔧 API: http://localhost:${PORT}/api`);
             console.log(`💾 Database: ${isPostgreSQL ? 'PostgreSQL' : 'SQLite'}`);
             console.log(`🎯 C Backend: ${cBackend.isCompiled ? 'Compiled' : 'Fallback mode'}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        });
+        
+        // Handle server errors
+        server.on('error', (error) => {
+            console.error('❌ Server error:', error);
+            if (error.code === 'EADDRINUSE') {
+                console.error(`❌ Port ${PORT} is already in use`);
+            }
+            process.exit(1);
         });
         
     } catch (error) {
