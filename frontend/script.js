@@ -47,7 +47,7 @@ async function checkBackendConnectivity() {
 async function syncTasksWithBackend() {
   try {
     // Get tasks from backend
-    const response = await fetch(apiConfig.getDataEndpoint('/tasks'), {
+    const response = await fetch(apiConfig.getEndpoint('/tasks'), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -77,33 +77,35 @@ function loadTasksFromLocalStorage() {
 async function initializeServiceWorker() {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navig// Demo function for professors - can be called from browser console
-window.demoNotification = function() {
-  const demoTask = {
-    id: 888,
-    command: "Professor Demo - Task Reminder System",
-    time: new Date().toTimeString().slice(0,5),
-    priority: "High",
-    mood: "excited",
-    deadline: new Date().toISOString().split('T')[0]
-  };
-  
-  // Demo both notification types
-  showBrowserNotification(demoTask);
-  showFullscreenNotification(demoTask);
-  logAction("Demo notification triggered (browser + fullscreen)");
-};orker.register('./sw.js');
+      // Register using absolute path so it works from any page
+      const registration = await navigator.serviceWorker.register('/sw.js');
       serviceWorker = registration;
-      
+
       // Listen for messages from service worker
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-      
+
       console.log('Service Worker registered successfully');
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
   }
 }
+
+// Demo function for quick manual test of notifications
+window.demoNotification = function() {
+  const demoTask = {
+    id: 888,
+    command: 'Demo - Task Reminder System',
+    time: new Date().toTimeString().slice(0,5),
+    priority: 'High',
+    mood: 'excited',
+    deadline: new Date().toISOString().split('T')[0]
+  };
+  // Demo both notification types
+  showBrowserNotification(demoTask);
+  showFullscreenNotification(demoTask);
+  logAction('Demo notification triggered (browser + fullscreen)');
+};
 
 function handleServiceWorkerMessage(event) {
   const { type, action, taskId } = event.data;
@@ -302,31 +304,9 @@ function addTask() {
   return false;
 }
 
-// Save tasks to backend (with localStorage fallback)
-async function saveTasks() {
-  try {
-    // Try to save to backend first
-    const response = await fetch(apiConfig.getDataEndpoint('/tasks'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(tasks)
-    });
-    
-    if (response.ok) {
-      console.log('✅ Tasks saved to backend successfully');
-      // Also save to localStorage as backup
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    } else {
-      throw new Error('Backend save failed');
-    }
-  } catch (error) {
-    console.log('⚠️ Backend save failed, using localStorage:', error.message);
-    // Fallback to localStorage
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    showToast('⚠️ Using offline mode - some features may be limited', 'warning');
-  }
+// Save tasks locally (fast + reliable). Backend sync is best-effort elsewhere.
+function saveTasks() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
 // Save individual task to backend
