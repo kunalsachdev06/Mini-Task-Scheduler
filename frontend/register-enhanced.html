@@ -638,13 +638,13 @@
   </div>
 
   <!-- Firebase Configuration -->
-  <script type="module" src="firebase-config.js"></script>
+  <!-- <script type="module" src="firebase-config.js"></script> -->
   
   <!-- Firebase reCAPTCHA Container -->
   <div id="recaptcha-container" class="register-recaptcha-hidden"></div>
 
   <!-- Load AuthManager -->
-  <script src="auth-backend.js"></script>
+  <!-- <script src="auth-backend.js"></script> -->
   
   <script>
     // Enhanced Registration System
@@ -652,11 +652,13 @@
       constructor() {
         this.currentStep = 1;
         this.maxSteps = 3;
-        this.authManager = new AuthManager();
         this.registrationData = {};
         this.faceData = null;
         this.otpSent = false;
         this.demoOTP = null; // Store the demo OTP for validation
+        
+        // Initialize authentication system
+        this.initializeAuth();
         
         this.initializeEventListeners();
         this.initializeOTPInputs();
@@ -664,6 +666,93 @@
         this.initializeFaceRecognition();
         
         console.log('✅ Registration Manager initialized');
+      }
+
+      // Initialize simple authentication system
+      initializeAuth() {
+        // Detect environment
+        this.isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        this.apiBaseUrl = this.isDevelopment 
+          ? 'http://localhost:3000/api'
+          : 'https://task-scheduler-backend-production-c243.up.railway.app/api';
+        
+        console.log('🔐 Auth system initialized with API:', this.apiBaseUrl);
+      }
+
+      // Simple API call method
+      async apiCall(endpoint, method = 'GET', data = null) {
+        const config = {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        };
+
+        if (data) {
+          config.body = JSON.stringify(data);
+        }
+
+        try {
+          const response = await fetch(`${this.apiBaseUrl}${endpoint}`, config);
+          const result = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(result.message || 'API call failed');
+          }
+          
+          return result;
+        } catch (error) {
+          console.error('API call failed:', error);
+          // Return demo response for offline mode
+          return { success: false, error: error.message, demo: true };
+        }
+      }
+
+      // Send OTP (with demo fallback)
+      async sendOTP(mobile) {
+        try {
+          // Try backend first
+          const response = await this.apiCall('/auth/send-otp', 'POST', { mobile });
+          
+          if (response.success) {
+            return response;
+          }
+        } catch (error) {
+          console.log('Backend OTP failed, using demo mode');
+        }
+        
+        // Demo mode fallback
+        const demoOTP = Math.floor(100000 + Math.random() * 900000).toString();
+        localStorage.setItem('demoOTP', demoOTP);
+        localStorage.setItem('demoOTPMobile', mobile);
+        
+        return { 
+          success: true, 
+          demo: true,
+          otp: demoOTP,
+          message: `Demo OTP sent to ${mobile}` 
+        };
+      }
+
+      // Verify OTP
+      async verifyOTP(otp, mobile) {
+        // Check demo OTP first
+        const storedOTP = localStorage.getItem('demoOTP');
+        const storedMobile = localStorage.getItem('demoOTPMobile');
+        
+        if (otp === storedOTP && mobile === storedMobile) {
+          localStorage.removeItem('demoOTP');
+          localStorage.removeItem('demoOTPMobile');
+          return { success: true, message: 'OTP verified successfully' };
+        }
+        
+        // Try backend verification
+        try {
+          const response = await this.apiCall('/auth/verify-otp', 'POST', { otp, mobile });
+          return response;
+        } catch (error) {
+          return { success: false, error: 'Invalid OTP' };
+        }
       }
       
       initializeEventListeners() {
@@ -834,69 +923,63 @@
           // In production, this would call the backend to send actual SMS
           console.log('📱 Sending OTP to:', this.registrationData.mobile);
           
-          // Generate a demo OTP that the user can see
-          this.demoOTP = Math.floor(100000 + Math.random() * 900000).toString();
-          
-          // Try to call backend API for OTP (fallback to demo if fails)
+          // Use the new sendOTP method
           try {
-            const response = await fetch('http://localhost:3000/api/auth/send-otp', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                mobile: this.registrationData.mobile,
-                email: this.registrationData.email
-              })
-            });
+            const result = await this.sendOTP(this.registrationData.mobile);
             
-            if (response.ok) {
-              const data = await response.json();
-              if (data.otp) {
-                this.demoOTP = data.otp; // Use backend generated OTP
+            if (result.success) {
+              this.otpSent = true;
+              this.demoOTP = result.otp; // Store for demo mode
+              
+              // Show demo OTP if in demo mode
+              if (result.demo) {
+                const otpDisplay = document.createElement('div');
+                otpDisplay.id = 'demo-otp-display';
+                otpDisplay.style.cssText = `
+                  background: #e3f2fd;
+                  border: 2px solid #2196f3;
+                  border-radius: 8px;
+                  padding: 15px;
+                  margin: 15px 0;
+                  text-align: center;
+                  font-family: monospace;
+                  font-size: 1.2rem;
+                  color: #1976d2;
+                  font-weight: bold;
+                `;
+                otpDisplay.innerHTML = `
+                  <div class="register-otp-title">🔐 <strong>Demo OTP Code</strong></div>
+                  <div class="register-otp-code">${this.demoOTP}</div>
+                  <div class="register-otp-instructions">
+                    Use this code for verification (Demo Mode)
+                  </div>
+                `;
+                
+                // Insert the OTP display before the OTP input section
+                const step2 = document.getElementById('step2');
+                const otpSection = step2.querySelector('.otp-section');
+                if (otpSection && !document.getElementById('demo-otp-display')) {
+                  otpSection.appendChild(otpDisplay);
+                }
               }
+            } else {
+              throw new Error(result.error || 'Failed to send OTP');
             }
           } catch (error) {
-            console.log('Backend not available, using demo OTP');
-          }
-          
-          this.otpSent = true;
-          
-          // Show the OTP to the user (for demo purposes)
-          const otpDisplay = document.createElement('div');
-          otpDisplay.id = 'demo-otp-display';
-          otpDisplay.style.cssText = `
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-            font-family: monospace;
-            font-size: 1.2rem;
-            color: #1976d2;
-            font-weight: bold;
-          `;
-          otpDisplay.innerHTML = `
-            <div class="register-otp-title">🔐 <strong>Demo OTP Code</strong></div>
-            <div class="register-otp-code">${this.demoOTP}</div>
-            <div class="register-otp-instructions">
-              Use this code for verification (Demo Mode)
-            </div>
-          `;
-          
-          // Insert the OTP display before the OTP input section
-          const step2 = document.getElementById('step2');
-          const otpSection = step2.querySelector('.otp-section');
-          if (otpSection && !document.getElementById('demo-otp-display')) {
-            otpSection.parentNode.insertBefore(otpDisplay, otpSection);
+            console.error('Error sending OTP:', error);
+            this.showMessage('❌ Failed to send verification code: ' + error.message, 'error');
+            return;
           }
           
           this.showSuccess('Verification code generated! Check the blue box above for your OTP.');
-          
         } catch (error) {
-          console.error('Error sending OTP:', error);
-          this.showError('Failed to send verification code. Please try again.');
+          console.error('Error in handleStep1Next:', error);
+          this.showMessage('❌ An error occurred: ' + error.message, 'error');
+        } finally {
+          // Reset button
+          const button = document.getElementById('step1Next');
+          button.disabled = false;
+          button.textContent = 'Continue to Mobile Setup';
         }
       }
       
@@ -909,8 +992,19 @@
         button.disabled = true;
         
         try {
-          await this.delay(1000);
-          this.goToStep(3);
+          // Verify OTP using the new method
+          const otpInputs = document.querySelectorAll('.otp-input');
+          const otp = Array.from(otpInputs).map(input => input.value).join('');
+          
+          const result = await this.verifyOTP(otp, this.registrationData.mobile);
+          
+          if (result.success) {
+            this.showMessage('✅ OTP verified successfully!', 'success');
+            await this.delay(1000);
+            this.goToStep(3);
+          } else {
+            throw new Error(result.error || 'Invalid OTP');
+          }
         } catch (error) {
           this.showError(error.message);
         } finally {
@@ -933,14 +1027,7 @@
           return false;
         }
         
-        // Check against demo OTP
-        if (this.demoOTP && otp !== this.demoOTP) {
-          this.showError('Invalid verification code. Please check the code displayed above.');
-          return false;
-        }
-        
-        this.registrationData.otp = otp;
-        return true;
+        return true; // Basic validation passed, actual verification happens in handleStep2Next
       }
       
       async initializeFaceRecognition() {
