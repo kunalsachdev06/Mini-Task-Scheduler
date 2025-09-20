@@ -6,6 +6,12 @@ function showTestTask() {
   const now = new Date();
   const currentTime = `${now.getHours().toString().padStart(2, '0')}:${(now.getMinutes() + 1).toString().padStart(2, '0')}`;
   
+  // Get today's date in local timezone (YYYY-MM-DD format)
+  const today = new Date();
+  const localDate = today.getFullYear() + '-' + 
+                   (today.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+                   today.getDate().toString().padStart(2, '0');
+  
   const testTask = {
     id: Date.now(),
     command: "🎯 Test Task - Notification Demo",
@@ -14,7 +20,7 @@ function showTestTask() {
     mood: "excited",
     status: "pending",
     notified: false,
-    deadline: now.toISOString().split('T')[0]
+    deadline: localDate
   };
   
   // Add to tasks array if it exists
@@ -38,13 +44,19 @@ function showTestTask() {
 
 // Test immediate notification
 function triggerTestNotification() {
+  // Get today's date in local timezone (YYYY-MM-DD format)
+  const today = new Date();
+  const localDate = today.getFullYear() + '-' + 
+                   (today.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+                   today.getDate().toString().padStart(2, '0');
+                   
   const testTask = {
     id: 999,
     command: "🔔 Immediate Test Notification",
     time: "now",
     priority: "High",
     mood: "excited",
-    deadline: new Date().toISOString().split('T')[0]
+    deadline: localDate
   };
   
   console.log('🔔 Triggering immediate test notification...');
