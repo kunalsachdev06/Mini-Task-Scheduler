@@ -460,3 +460,103 @@ pre#logArea { background: rgba(0,0,0,0.03); padding:1rem; border-radius:8px; whi
     max-width: 100%;
   }
 }
+
+/* Animation delay classes */
+.delay-02 { animation-delay: 0.2s; }
+.delay-04 { animation-delay: 0.4s; }
+.delay-06 { animation-delay: 0.6s; }
+.delay-08 { animation-delay: 0.8s; }
+.delay-10 { animation-delay: 1.0s; }
+.delay-12 { animation-delay: 1.2s; }
+.delay-14 { animation-delay: 1.4s; }
+
+/* Hero button styles */
+.hero-buttons {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* CTA button styles */
+.cta-secondary {
+  background: rgba(255,255,255,0.2) !important;
+  color: white !important;
+  border: 2px solid rgba(255,255,255,0.3) !important;
+}
+
+/* History page specific styles */
+.history-title {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.history-subtitle {
+  color: var(--muted);
+  margin: 0.5rem 0 0 0;
+}
+
+.history-stats-container {
+  display: flex;
+  gap: 1rem;
+}
+
+.history-stat-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.history-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem;
+}
+
+.history-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+}
+
+.history-insights-card {
+  margin-top: 1.5rem;
+}
+
+.history-insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.history-insight-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Login page specific styles */
+.login-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+}
+
+.login-progress-fill {
+  width: 33%;
+}
+
+.login-auth-text {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.login-camera-container {
+  display: none;
+}
+
+.login-face-status {
+  text-align: center;
+  margin: 1rem 0;
+  color: var(--muted);
+}
