@@ -416,33 +416,52 @@
   <script src="header.js"></script>
   <script src="script.js"></script>
   <script src="auth-backend.js"></script>
+  <!-- Load API Configuration -->
+  <script src="api-config.js"></script>
+  
   <script>
-    // Simple auth check for history page
-    function checkAuth() {
-      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-      if (!token) {
-        window.location.href = 'index.html';
-        return false;
-      }
-      return true;
-    }
-
-    // Check authentication on page load
-    if (!checkAuth()) {
-      // Redirect handled in checkAuth function
-    }
-    
-    // History page specific functionality
+    // History page with backend integration
+    let apiConfig = null;
     let currentFilter = 'all';
     
     document.addEventListener('DOMContentLoaded', function() {
+      // Initialize API configuration
+      apiConfig = new APIConfig();
+      
       loadHistory();
       updateHistoryStats();
     });
     
-    function loadHistory() {
-      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-      const completedTasks = tasks.filter(task => task.status === 'completed');
+    // Load history from backend
+    async function loadHistory() {
+      let completedTasks = [];
+      
+      try {
+        // Try to get history from backend
+        const response = await fetch(apiConfig.getDataEndpoint('/history'), {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          completedTasks = await response.json();
+          console.log('📥 History loaded from backend:', completedTasks.length);
+        } else {
+          throw new Error('Backend history not available');
+        }
+      } catch (error) {
+        console.log('⚠️ Backend history failed, using localStorage');
+        
+        // Fallback to localStorage
+        const localHistory = JSON.parse(localStorage.getItem('taskHistory') || '[]');
+        const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        const localCompleted = tasks.filter(task => task.status === 'completed');
+        
+        completedTasks = [...localHistory, ...localCompleted];
+      }
+      
       const historyList = document.getElementById('historyList');
       
       if (completedTasks.length === 0) {

@@ -1,16 +1,77 @@
-// Task Scheduler - Complete Implementation
-let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+// Task Scheduler - Complete Implementation with Backend Integration
+let tasks = [];
 let notifications = [];
 let serviceWorker = null;
+let apiConfig = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize API configuration
+  apiConfig = new APIConfig();
+  
   loadTasks();
   updateStats();
   startNotificationChecker();
   initializeServiceWorker();
   requestNotificationPermission();
+  
+  // Check backend connectivity
+  checkBackendConnectivity();
 });
+
+// Check if backend is available
+async function checkBackendConnectivity() {
+  try {
+    const response = await fetch(apiConfig.getEndpoint('/health'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      console.log('✅ Backend connected successfully');
+      // Sync local tasks with backend
+      await syncTasksWithBackend();
+    } else {
+      console.log('⚠️ Backend not responding, using offline mode');
+      loadTasksFromLocalStorage();
+    }
+  } catch (error) {
+    console.log('⚠️ Backend unavailable, using offline mode:', error.message);
+    loadTasksFromLocalStorage();
+  }
+}
+
+// Sync tasks with backend
+async function syncTasksWithBackend() {
+  try {
+    // Get tasks from backend
+    const response = await fetch(apiConfig.getDataEndpoint('/tasks'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const backendTasks = await response.json();
+      tasks = backendTasks || [];
+      console.log('📥 Tasks loaded from backend:', tasks.length);
+    } else {
+      throw new Error('Failed to fetch tasks from backend');
+    }
+  } catch (error) {
+    console.log('⚠️ Backend sync failed, using local storage');
+    loadTasksFromLocalStorage();
+  }
+}
+
+// Load tasks from localStorage (fallback)
+function loadTasksFromLocalStorage() {
+  tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  console.log('📱 Tasks loaded from localStorage:', tasks.length);
+}
 
 // Initialize Service Worker for background notifications
 async function initializeServiceWorker() {
@@ -241,9 +302,76 @@ function addTask() {
   return false;
 }
 
-// Save tasks to localStorage
-function saveTasks() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+// Save tasks to backend (with localStorage fallback)
+async function saveTasks() {
+  try {
+    // Try to save to backend first
+    const response = await fetch(apiConfig.getDataEndpoint('/tasks'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(tasks)
+    });
+    
+    if (response.ok) {
+      console.log('✅ Tasks saved to backend successfully');
+      // Also save to localStorage as backup
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    } else {
+      throw new Error('Backend save failed');
+    }
+  } catch (error) {
+    console.log('⚠️ Backend save failed, using localStorage:', error.message);
+    // Fallback to localStorage
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    showToast('⚠️ Using offline mode - some features may be limited', 'warning');
+  }
+}
+
+// Save individual task to backend
+async function saveTask(task) {
+  try {
+    const response = await fetch(apiConfig.getDataEndpoint('/tasks'), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(task)
+    });
+    
+    if (response.ok) {
+      console.log('✅ Task saved to backend:', task.id);
+      return true;
+    } else {
+      throw new Error('Backend task save failed');
+    }
+  } catch (error) {
+    console.log('⚠️ Backend task save failed:', error.message);
+    return false;
+  }
+}
+
+// Delete task from backend
+async function deleteTaskFromBackend(taskId) {
+  try {
+    const response = await fetch(apiConfig.getDataEndpoint(`/tasks/${taskId}`), {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      console.log('✅ Task deleted from backend:', taskId);
+      return true;
+    } else {
+      throw new Error('Backend task deletion failed');
+    }
+  } catch (error) {
+    console.log('⚠️ Backend task deletion failed:', error.message);
+    return false;
+  }
 }
 
 // Load and display tasks
@@ -291,18 +419,99 @@ function deleteTask(id) {
 }
 
 // Run/Complete task
-function runTask(id) {
+async function runTask(id) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
   
-  task.status = task.status === 'completed' ? 'pending' : 'completed';
-  task.completedAt = task.status === 'completed' ? new Date().toISOString() : null;
+  if (task.status === 'completed') {
+    // Toggle back to pending
+    task.status = 'pending';
+    task.completedAt = null;
+    showToast('Task marked as pending', 'info');
+  } else {
+    // Mark as completed
+    task.status = 'completed';
+    task.completedAt = new Date().toISOString();
+    
+    // Move to history after completion
+    await moveTaskToHistory(task);
+    
+    showToast('✅ Task completed and moved to history!', 'success');
+    logAction(`Task completed: ${task.command}`);
+    
+    // Remove from active tasks after a short delay
+    setTimeout(async () => {
+      tasks = tasks.filter(t => t.id !== id);
+      await saveTasks();
+      loadTasks();
+      updateStats();
+    }, 2000);
+    
+    return;
+  }
   
-  saveTasks();
+  await saveTasks();
   loadTasks();
   updateStats();
-  showToast(`Task ${task.status}!`, 'success');
   logAction(`Task ${task.status}: ${task.command}`);
+}
+
+// Move completed task to history
+async function moveTaskToHistory(task) {
+  try {
+    // Save to history in backend
+    const response = await fetch(apiConfig.getDataEndpoint('/history'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...task,
+        completedAt: task.completedAt || new Date().toISOString(),
+        productivity_score: calculateTaskProductivityScore(task)
+      })
+    });
+    
+    if (response.ok) {
+      console.log('✅ Task moved to history:', task.id);
+    } else {
+      throw new Error('Failed to save to history');
+    }
+  } catch (error) {
+    console.log('⚠️ Failed to save to backend history, using localStorage');
+    
+    // Fallback to localStorage history
+    let history = JSON.parse(localStorage.getItem('taskHistory') || '[]');
+    history.push({
+      ...task,
+      completedAt: task.completedAt || new Date().toISOString(),
+      productivity_score: calculateTaskProductivityScore(task)
+    });
+    localStorage.setItem('taskHistory', JSON.stringify(history));
+  }
+}
+
+// Calculate productivity score for completed task
+function calculateTaskProductivityScore(task) {
+  let score = 10; // Base score
+  
+  // Priority bonus
+  if (task.priority === 'High') score += 5;
+  else if (task.priority === 'Medium') score += 3;
+  else score += 1;
+  
+  // Completion time bonus (if completed early)
+  const taskTime = new Date(`${task.deadline || new Date().toISOString().split('T')[0]} ${task.time}`);
+  const completedTime = new Date(task.completedAt);
+  
+  if (completedTime <= taskTime) {
+    score += 10; // On-time completion bonus
+  } else {
+    const delayHours = (completedTime - taskTime) / (1000 * 60 * 60);
+    score = Math.max(1, score - Math.floor(delayHours)); // Reduce score for delays
+  }
+  
+  return Math.max(1, score);
 }
 
 // Edit task (simplified - opens prompt)
