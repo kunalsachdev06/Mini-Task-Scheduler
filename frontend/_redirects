@@ -1,7 +1,1 @@
-# Netlify redirects for Mini Task Scheduler SPA
-
-# Redirect root to main page
-/    /index.html   200
-
-# SPA routing - all routes should serve index.html for client-side routing
-/*   /index.html   200
+/*    /index.html   200
