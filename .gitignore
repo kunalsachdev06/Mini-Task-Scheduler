@@ -2,3 +2,9 @@
 
 # Local Netlify folder
 .netlify
+node_modules/
+*.log
+.env
+.DS_Store
+dist/
+build/

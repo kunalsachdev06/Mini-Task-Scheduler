@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Check backend connectivity
   checkBackendConnectivity();
+  
+  // Make test functions globally available for debugging
+  window.testNotification = testNotification;
+  window.demoNotification = demoNotification;
+  window.showTestTask = showTestTask;
 });
 
 // Check if backend is available
@@ -597,7 +602,244 @@ function logAction(action) {
   log.scrollTop = log.scrollHeight;
 }
 
-// FULLSCREEN NOTIFICATION SYSTEM
+function startNotificationChecker() {
+  setInterval(checkTaskNotifications, 10000); // Check every 10 seconds for better accuracy
+  checkTaskNotifications(); // Run immediately on page load
+}
+
+function checkTaskNotifications() {
+  const now = new Date();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  
+  tasks.forEach(task => {
+    if (task.status === 'pending' && !task.notified) {
+      // Check if task time has passed (within the last 5 minutes)
+      const taskDateTime = getTaskDateTime(task.time);
+      const timeDiff = now - taskDateTime;
+      
+      // Trigger notification if task time is now or was within the last 5 minutes
+      if (timeDiff >= 0 && timeDiff <= 5 * 60 * 1000) {
+        task.notified = true;
+        saveTasks();
+        
+        // Show both browser notification and fullscreen notification
+        showBrowserNotification(task);
+        showFullscreenNotification(task);
+        
+        logAction(`Notification sent: ${task.command} (${timeDiff/1000}s after scheduled time)`);
+      }
+    }
+  });
+}
+
+// Helper function to get full DateTime for a task
+function getTaskDateTime(timeString) {
+  const today = new Date();
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const taskDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, 0);
+  return taskDateTime;
+}
+
+// Show browser notification (works even when app is closed)
+async function showBrowserNotification(task) {
+  if (Notification.permission !== 'granted') {
+    return;
+  }
+
+  const title = '⏰ Task Reminder';
+  const body = `${task.command}\nPriority: ${task.priority} | Mood: ${getMoodEmoji(task.mood)}`;
+  
+  try {
+    // Prefer using ServiceWorkerRegistration for better background support
+    const registration = serviceWorker || (await navigator.serviceWorker.ready);
+    if (registration && registration.showNotification) {
+      await registration.showNotification(title, {
+        body: body,
+        icon: './assets/logo.png',
+        badge: './assets/logo.png',
+        tag: task.id.toString(),
+        vibrate: [200, 100, 200],
+        requireInteraction: true,
+        data: { taskId: task.id }
+      });
+      return;
+    }
+  } catch (e) {
+    // Fall through to message or direct Notification
+  }
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SHOW_NOTIFICATION',
+      title,
+      body,
+      tag: task.id.toString(),
+      icon: './assets/logo.png',
+      data: { taskId: task.id }
+    });
+    return;
+  }
+
+  // Fallback to regular notification
+  const notification = new Notification(title, {
+    body: body,
+    icon: './assets/logo.png',
+    badge: './assets/logo.png',
+    tag: task.id.toString(),
+    vibrate: [200, 100, 200],
+    requireInteraction: true
+  });
+
+  notification.onclick = () => {
+    window.focus();
+    notification.close();
+  };
+}
+
+function showFullscreenNotification(task) {
+  // Create fullscreen notification modal
+  const modal = document.createElement('div');
+  modal.className = 'fullscreen-notification';
+  modal.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-header">
+        <div class="alarm-icon">⏰</div>
+        <h2>Task Reminder</h2>
+      </div>
+      <div class="notification-body">
+        <h3>${task.command}</h3>
+        <div class="task-details">
+          <div class="detail-item">
+            <span class="icon">🕒</span>
+            <span>Time: ${formatTime(task.time)}</span>
+          </div>
+          <div class="detail-item">
+            <span class="icon">🎯</span>
+            <span>Priority: ${task.priority}</span>
+          </div>
+          <div class="detail-item">
+            <span class="icon">${getMoodEmoji(task.mood)}</span>
+            <span>Mood: ${task.mood}</span>
+          </div>
+          ${task.deadline ? `
+          <div class="detail-item">
+            <span class="icon">📅</span>
+            <span>Deadline: ${new Date(task.deadline).toLocaleDateString()}</span>
+          </div>` : ''}
+        </div>
+      </div>
+      <div class="notification-actions">
+        <button class="btn-complete" onclick="completeFromNotification(${task.id})">✅ Mark Complete</button>
+        <button class="btn-snooze" onclick="snoozeNotification(${task.id})">😴 Snooze 5 min</button>
+        <button class="btn-dismiss" onclick="dismissNotification()">❌ Dismiss</button>
+      </div>
+    </div>
+  `;
+  
+  // Add styles
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 99999; color: white; font-family: 'Inter', sans-serif;
+    animation: notificationSlideIn 0.5s ease-out;
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Try to go fullscreen on mobile
+  if (modal.requestFullscreen) {
+    modal.requestFullscreen().catch(() => {});
+  }
+  
+  // Play notification sound (if possible)
+  playNotificationSound();
+  
+  // Vibrate on mobile
+  if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+  
+  // Auto-dismiss after 30 seconds
+  setTimeout(() => {
+    if (document.querySelector('.fullscreen-notification')) {
+      dismissNotification();
+    }
+  }, 30000);
+}
+
+function completeFromNotification(taskId) {
+  runTask(taskId);
+  dismissNotification();
+  showToast('Task completed! 🎉', 'success');
+}
+
+function snoozeNotification(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (task) {
+    // Add 5 minutes to task time
+    const [hours, minutes] = task.time.split(':').map(Number);
+    const newMinutes = (minutes + 5) % 60;
+    const newHours = hours + Math.floor((minutes + 5) / 60);
+    task.time = `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+    task.notified = false;
+    saveTasks();
+    loadTasks();
+  }
+  dismissNotification();
+  showToast('Task snoozed for 5 minutes', 'info');
+}
+
+function dismissNotification() {
+  const modal = document.querySelector('.fullscreen-notification');
+  if (modal) {
+    modal.style.animation = 'notificationSlideOut 0.3s ease-in';
+    setTimeout(() => {
+      modal.remove();
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }, 300);
+  }
+}
+
+function playNotificationSound() {
+  // Create a simple beep sound using Web Audio API
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+// Test notification function
+function testNotification() {
+  const testTask = {
+    id: 999,
+    command: "Test Reminder",
+    time: "12:00",
+    priority: "High",
+    mood: "excited",
+    deadline: new Date().toISOString().split('T')[0]
+  };
+  
+  // Test both browser and fullscreen notifications
+  showBrowserNotification(testTask);
+  showFullscreenNotification(testTask);
+  logAction("Test notification triggered (browser + fullscreen)");
+}
 
 function startNotificationChecker() {
   setInterval(checkTaskNotifications, 10000); // Check every 10 seconds for better accuracy

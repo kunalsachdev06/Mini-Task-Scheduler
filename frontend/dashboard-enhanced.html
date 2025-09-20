@@ -713,6 +713,26 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* Button group for section headers */
+        .button-group {
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-3);
+            }
+        }
     </style>
 </head>
 <body>
@@ -789,10 +809,21 @@
                     <div class="section-card">
                         <div class="section-header">
                             <h2 class="section-title">Today's Tasks</h2>
-                            <button class="btn btn-primary" onclick="refreshTasks()">
-                                <span class="loading-spinner dashboard-spinner-hidden" id="refreshSpinner"></span>
-                                Refresh
-                            </button>
+                            <div class="button-group">
+                                <button class="btn btn-warning" onclick="triggerTestNotification()" title="Test notification system immediately">
+                                    🔔 Test Alert
+                                </button>
+                                <button class="btn btn-info" onclick="showTestTask()" title="Create test task for 1 minute from now">
+                                    ⏰ Test Task
+                                </button>
+                                <button class="btn btn-secondary" onclick="testWorkflow()" title="Test complete workflow">
+                                    🧪 Full Test
+                                </button>
+                                <button class="btn btn-primary" onclick="refreshTasks()">
+                                    <span class="loading-spinner dashboard-spinner-hidden" id="refreshSpinner"></span>
+                                    Refresh
+                                </button>
+                            </div>
                         </div>
                         <div class="section-content">
                             <div class="task-list" id="todayTasks">
@@ -948,7 +979,9 @@
 
     <!-- Scripts -->
     <script src="api-config.js"></script>
+    <script src="script.js"></script>
     <script src="app.js"></script>
+    <script src="test-utils.js"></script>
     
     <!-- API Helper Functions -->
     <script>
