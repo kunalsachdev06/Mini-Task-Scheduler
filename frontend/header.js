@@ -5,28 +5,21 @@ import Header from "./header";
 
 function Header() {
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "10px 20px",
-        borderBottom: "1px solid #ddd",
-      }}
-    >
+    <header className="header-container">
       {/* Logo */}
       <img
         src={logo}
         alt="Logo"
-        style={{ height: "40px", marginRight: "10px" }}
+        className="header-logo"
       />
 
       {/* App Name */}
-      <h1 style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
+      <h1 className="header-title">
         Mini Task Scheduler
       </h1>
 
       {/* Nav Menu */}
-      <nav style={{ marginLeft: "auto", display: "flex", gap: "20px" }}>
+      <nav className="header-nav">
         <a href="/dashboard">Dashboard</a>
         <a href="/history">History</a>
         <a href="/about">About</a>

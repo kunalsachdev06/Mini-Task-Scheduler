@@ -451,7 +451,7 @@
       
       <!-- Progress Bar -->
       <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 33%"></div>
+        <div class="progress-fill" id="progressFill"></div>
       </div>
       
       <!-- Header -->
@@ -556,7 +556,7 @@
         </div>
         
         <!-- Step 2: Mobile Verification -->
-        <div class="form-section" id="step2" style="display: none;">
+        <div class="form-section register-step-hidden" id="step2">
           <h2 class="section-title">
             <span class="step-indicator">2</span>
             Mobile Verification
@@ -576,21 +576,21 @@
               <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
             </div>
             
-            <p>Didn't receive the code? <a href="#" id="resendOTP" style="color: var(--primary-600);">Resend</a></p>
+            <p>Didn't receive the code? <a href="#" id="resendOTP" class="register-resend-link">Resend</a></p>
           </div>
           
-          <div style="display: flex; gap: var(--space-4); margin-top: var(--space-8);">
-            <button type="button" id="step2Back" class="btn btn-secondary" style="flex: 1;">
+          <div class="register-button-container">
+            <button type="button" id="step2Back" class="btn btn-secondary register-btn-back">
               ← Back
             </button>
-            <button type="button" id="step2Next" class="btn btn-primary" style="flex: 2;">
+            <button type="button" id="step2Next" class="btn btn-primary register-btn-continue">
               Continue to Face Setup
             </button>
           </div>
         </div>
         
         <!-- Step 3: Face Recognition Setup -->
-        <div class="form-section" id="step3" style="display: none;">
+        <div class="form-section register-step-hidden" id="step3">
           <h2 class="section-title">
             <span class="step-indicator">3</span>
             Face Recognition Setup
@@ -601,16 +601,16 @@
             <h3>Set Up Face Recognition</h3>
             <p>Position your face within the frame and click capture when ready</p>
             
-            <video id="videoElement" autoplay muted style="display: none;"></video>
-            <canvas id="canvasElement" style="display: none;"></canvas>
+            <video id="videoElement" autoplay muted class="register-video-hidden"></video>
+            <canvas id="canvasElement" class="register-canvas-hidden"></canvas>
             
-            <div id="cameraControls" style="margin-top: var(--space-6);">
+            <div id="cameraControls" class="register-camera-controls">
               <button type="button" id="startCamera" class="btn btn-primary">
                 Start Camera
               </button>
             </div>
             
-            <div id="captureControls" style="display: none; margin-top: var(--space-6);">
+            <div id="captureControls" class="register-capture-controls">
               <button type="button" id="capturePhoto" class="btn btn-success">
                 📷 Capture Photo
               </button>
@@ -620,11 +620,11 @@
             </div>
           </div>
           
-          <div style="display: flex; gap: var(--space-4); margin-top: var(--space-8);">
-            <button type="button" id="step3Back" class="btn btn-secondary" style="flex: 1;">
+          <div class="register-button-container">
+            <button type="button" id="step3Back" class="btn btn-secondary register-btn-back">
               ← Back
             </button>
-            <button type="button" id="step3Next" class="btn btn-primary" style="flex: 2;" disabled>
+            <button type="button" id="step3Next" class="btn btn-primary register-btn-continue" disabled>
               Complete Registration
             </button>
           </div>
@@ -632,8 +632,8 @@
       </form>
       
       <!-- Messages -->
-      <div id="errorMessage" class="error-message" style="display: none;"></div>
-      <div id="successMessage" class="success-message" style="display: none;"></div>
+      <div id="errorMessage" class="error-message register-message-hidden"></div>
+      <div id="successMessage" class="success-message register-message-hidden"></div>
     </div>
   </div>
 
@@ -641,7 +641,7 @@
   <script type="module" src="firebase-config.js"></script>
   
   <!-- Firebase reCAPTCHA Container -->
-  <div id="recaptcha-container" style="display: none;"></div>
+  <div id="recaptcha-container" class="register-recaptcha-hidden"></div>
 
   <!-- Load AuthManager -->
   <script src="auth-backend.js"></script>
@@ -878,9 +878,9 @@
             font-weight: bold;
           `;
           otpDisplay.innerHTML = `
-            <div style="margin-bottom: 8px;">🔐 <strong>Demo OTP Code</strong></div>
-            <div style="font-size: 1.5rem; letter-spacing: 3px;">${this.demoOTP}</div>
-            <div style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">
+            <div class="register-otp-title">🔐 <strong>Demo OTP Code</strong></div>
+            <div class="register-otp-code">${this.demoOTP}</div>
+            <div class="register-otp-instructions">
               Use this code for verification (Demo Mode)
             </div>
           `;

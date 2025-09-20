@@ -824,3 +824,86 @@ main {
 .gap-2 { gap: var(--space-2); }
 .gap-4 { gap: var(--space-4); }
 .gap-6 { gap: var(--space-6); }
+
+/* Register form styles */
+.register-step-hidden {
+  display: none;
+}
+
+.register-resend-link {
+  color: var(--primary-600);
+}
+
+.register-button-container {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.register-btn-back {
+  flex: 1;
+}
+
+.register-btn-continue {
+  flex: 2;
+}
+
+.register-video-hidden {
+  display: none;
+}
+
+.register-canvas-hidden {
+  display: none;
+}
+
+.register-camera-controls {
+  margin-top: var(--space-6);
+}
+
+.register-capture-controls {
+  display: none;
+  margin-top: var(--space-6);
+}
+
+.register-message-hidden {
+  display: none;
+}
+
+.register-recaptcha-hidden {
+  display: none;
+}
+
+.register-otp-title {
+  margin-bottom: 8px;
+}
+
+.register-otp-code {
+  font-size: 1.5rem;
+  letter-spacing: 3px;
+}
+
+.register-otp-instructions {
+  font-size: 0.9rem;
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+/* Dashboard styles */
+.dashboard-spinner-hidden {
+  display: none;
+}
+
+.dashboard-stats-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboard-stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dashboard-overdue-count {
+  color: var(--danger-500);
+}

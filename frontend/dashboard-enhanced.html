@@ -790,7 +790,7 @@
                         <div class="section-header">
                             <h2 class="section-title">Today's Tasks</h2>
                             <button class="btn btn-primary" onclick="refreshTasks()">
-                                <span class="loading-spinner" id="refreshSpinner" style="display: none;"></span>
+                                <span class="loading-spinner dashboard-spinner-hidden" id="refreshSpinner"></span>
                                 Refresh
                             </button>
                         </div>
@@ -850,7 +850,7 @@
                                     <input type="datetime-local" id="taskDue" class="form-input">
                                 </div>
                                 <button type="submit" class="btn btn-primary">
-                                    <span class="loading-spinner" id="addTaskSpinner" style="display: none;"></span>
+                                    <span class="loading-spinner dashboard-spinner-hidden" id="addTaskSpinner"></span>
                                     Add Task
                                 </button>
                             </form>
@@ -863,18 +863,18 @@
                             <h3 class="section-title">Quick Stats</h3>
                         </div>
                         <div class="section-content">
-                            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                                <div style="display: flex; justify-content: space-between;">
+                            <div class="dashboard-stats-layout">
+                                <div class="dashboard-stat-row">
                                     <span>This Week:</span>
                                     <span id="weekTasks">0 tasks</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between;">
+                                <div class="dashboard-stat-row">
                                     <span>This Month:</span>
                                     <span id="monthTasks">0 tasks</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between;">
+                                <div class="dashboard-stat-row">
                                     <span>Overdue:</span>
-                                    <span id="overdueTasks" style="color: var(--danger-500);">0 tasks</span>
+                                    <span id="overdueTasks" class="dashboard-overdue-count">0 tasks</span>
                                 </div>
                             </div>
                         </div>

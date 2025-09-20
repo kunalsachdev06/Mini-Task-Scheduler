@@ -6,7 +6,6 @@
   "scope": "./",
   "id": "task-scheduler-pro",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
@@ -68,16 +67,12 @@
     {
       "src": "./assets/screenshot-mobile.png",
       "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile Dashboard - Task Management"
+      "type": "image/png"
     },
     {
       "src": "./assets/screenshot-desktop.png", 
       "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop Dashboard - Full Feature Set"
+      "type": "image/png"
     }
   ],
   "shortcuts": [
@@ -140,18 +135,5 @@
       "url": "url"
     }
   },
-  "protocol_handlers": [
-    {
-      "protocol": "task",
-      "url": "./dashboard-enhanced.html?task=%s"
-    }
-  ],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
-  "handle_links": "preferred",
   "related_applications": []
 }

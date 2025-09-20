@@ -560,3 +560,103 @@ pre#logArea { background: rgba(0,0,0,0.03); padding:1rem; border-radius:8px; whi
   margin: 1rem 0;
   color: var(--muted);
 }
+
+.history-empty-state {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem;
+}
+
+.login-face-instructions {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* New CSS classes for inline style replacements */
+.nav-hidden {
+  display: none;
+}
+
+.task-completed-status {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--success);
+}
+
+.no-tasks-message {
+  text-align: center;
+  color: gray;
+}
+
+.login-otp-instructions {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* Heatmap intensity classes */
+.heatmap-intensity-0 { background-color: rgba(37,99,235,0.1); }
+.heatmap-intensity-1 { background-color: rgba(37,99,235,0.18); }
+.heatmap-intensity-2 { background-color: rgba(37,99,235,0.26); }
+.heatmap-intensity-3 { background-color: rgba(37,99,235,0.34); }
+.heatmap-intensity-4 { background-color: rgba(37,99,235,0.42); }
+.heatmap-intensity-5 { background-color: rgba(37,99,235,0.5); }
+.heatmap-intensity-6 { background-color: rgba(37,99,235,0.58); }
+.heatmap-intensity-7 { background-color: rgba(37,99,235,0.66); }
+.heatmap-intensity-8 { background-color: rgba(37,99,235,0.74); }
+.heatmap-intensity-9 { background-color: rgba(37,99,235,0.82); }
+.heatmap-intensity-10 { background-color: rgba(37,99,235,0.9); }
+
+/* App.js styles */
+.app-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.app-no-tasks {
+  text-align: center;
+  color: gray;
+}
+
+.app-heatmap {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+  margin-top: 20px;
+}
+
+.app-heatmap-cell {
+  width: 20px;
+  height: 20px;
+  background: blue;
+}
+
+/* Header.js styles */
+.header-container {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header-logo {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.header-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.header-nav {
+  margin-left: auto;
+  display: flex;
+  gap: 20px;
+}
+
+/* API test styles */
+.api-result-hidden {
+  display: none;
+}

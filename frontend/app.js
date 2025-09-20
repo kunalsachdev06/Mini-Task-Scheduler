@@ -56,7 +56,7 @@ function App() {
         </form>
 
         {/* Task Table */}
-        <table border="1" cellPadding="6" style={{ width: "100%", marginBottom: "20px" }}>
+        <table border="1" cellPadding="6" className="app-table">
           <thead>
             <tr>
               <th>Command</th>
@@ -69,7 +69,7 @@ function App() {
           <tbody>
             {tasks.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ textAlign: "center", color: "gray" }}>
+                <td colSpan="5" className="app-no-tasks">
                   No tasks yet
                 </td>
               </tr>
@@ -96,9 +96,9 @@ function App() {
         </div>
 
         {/* Heatmap */}
-        <div id="heatmap" style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "4px", marginTop: "20px" }}>
+        <div id="heatmap" className="app-heatmap">
           {heatmap.map((opacity, i) => (
-            <div key={i} style={{ width: "20px", height: "20px", background: "blue", opacity }}></div>
+            <div key={i} className="app-heatmap-cell" style={{ opacity }}></div>
           ))}
         </div>
       </main>

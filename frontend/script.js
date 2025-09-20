@@ -252,7 +252,7 @@ function loadTasks() {
   if (!tbody) return;
   
   if (tasks.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:gray">No tasks yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="no-tasks-message">No tasks yet</td></tr>';
     return;
   }
   
@@ -366,7 +366,8 @@ function updateHeatmap() {
   const maxTasks = Math.max(...hours, 1);
   heatmap.innerHTML = hours.map((count, hour) => {
     const intensity = count / maxTasks;
-    return `<div class="cell" style="background-color: rgba(37,99,235,${0.1 + intensity * 0.8})" title="${hour}:00 - ${count} tasks"></div>`;
+    const intensityLevel = Math.floor(intensity * 10); // 0-10 levels
+    return `<div class="cell heatmap-intensity-${intensityLevel}" title="${hour}:00 - ${count} tasks"></div>`;
   }).join('');
 }
 

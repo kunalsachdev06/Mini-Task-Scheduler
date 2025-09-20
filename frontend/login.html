@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - Mini Task Scheduler</title>
   <link rel="stylesheet" href="styles.css">
   
@@ -10,8 +10,13 @@
   <link rel="manifest" href="manifest.webmanifest">
   
   <!-- Mobile optimizations -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">             <p class=\"login-otp-instructions\">
+            We've sent a 6-digit code to <span id=\"masked-mobile\"></span>
+          </p>    <p class=\"logi          <p class=\"login-auth-text\">
+            Look directly at the camera to complete authentication
+          </p>uth-text\">
+            We've sent a 6-digit code to <span id=\"masked-mobile\"></span>
+          </p><meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Task Scheduler">
   <link rel="apple-touch-icon" href="./assets/logo.png">
@@ -361,13 +366,13 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <img src="./assets/logo.png" alt="Logo" style="width: 60px; height: 60px; border-radius: 12px;">
+        <img src="./assets/logo.png" alt="Logo" class="login-logo">
         <h1>Welcome Back</h1>
         <p>Secure 3-factor authentication</p>
       </div>
       
       <div class="auth-progress">
-        <div class="progress-fill" id="progress-fill" style="width: 33%;"></div>
+        <div class="progress-fill login-progress-fill" id="progress-fill"></div>
         <div class="auth-step active" id="auth-step-1">
           <div class="step-icon">🔑</div>
           <div class="step-label">Password</div>
@@ -424,11 +429,11 @@
       <form class="auth-form" id="auth-form-3">
         <div class="form-group">
           <label>Face Recognition</label>
-          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          <p class="login-face-instructions">
             Look directly at the camera to complete authentication
           </p>
           
-          <div class="camera-container" id="login-camera-container" style="display: none;">
+          <div class="camera-container login-camera-container" id="login-camera-container">
             <video id="login-camera-video" class="camera-video" autoplay muted></video>
             <div class="camera-overlay"></div>
             <div class="camera-instructions">
@@ -440,7 +445,7 @@
             📷 Start Face Recognition
           </button>
           
-          <div id="face-auth-status" style="text-align: center; margin: 1rem 0; color: var(--muted);"></div>
+          <div id="face-auth-status" class="login-face-status"></div>
         </div>
         
         <button type="submit" class="btn-primary" id="btn-face" disabled>Complete Login</button>

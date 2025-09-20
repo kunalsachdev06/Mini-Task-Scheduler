@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>History - Mini Task Scheduler</title>
   <link rel="stylesheet" href="styles-enhanced.css">
   
@@ -345,19 +345,19 @@
 
   <div class="history-stats">
     <div class="stat-card tooltip" data-tooltip="Total number of tasks you have successfully completed">
-      <div style="color:var(--muted); font-weight:600;">Total Completed</div>
+      <div class="history-stat-label">Total Completed</div>
       <div class="stat-number" id="totalCompleted">0</div>
     </div>
     <div class="stat-card tooltip" data-tooltip="Tasks completed in the last 7 days from today">
-      <div style="color:var(--muted); font-weight:600;">This Week</div>
+      <div class="history-stat-label">This Week</div>
       <div class="stat-number" id="weekCompleted">0</div>
     </div>
     <div class="stat-card tooltip" data-tooltip="Percentage of completed tasks vs total tasks created (Completed ÷ Total × 100)">
-      <div style="color:var(--muted); font-weight:600;">Success Rate</div>
+      <div class="history-stat-label">Success Rate</div>
       <div class="stat-number" id="successRate">0%</div>
     </div>
     <div class="stat-card tooltip" data-tooltip="Average tasks completed per day (Total completed ÷ days since first task)">
-      <div style="color:var(--muted); font-weight:600;">Avg. per Day</div>
+      <div class="history-stat-label">Avg. per Day</div>
       <div class="stat-number" id="avgPerDay">0</div>
     </div>
   </div>
@@ -373,7 +373,7 @@
           <button class="filter-btn" onclick="filterHistory('month')">This Month</button>
         </div>
         <div id="historyList">
-          <div style="text-align:center; color:var(--muted); padding:2rem;">
+          <div class="history-empty-state">
             No completed tasks yet. Complete some tasks to see history!
           </div>
         </div>
@@ -384,31 +384,28 @@
       <div class="time-chart">
         <h4>📊 Productivity Chart</h4>
         <div class="productivity-chart" id="productivityChart">
-          <div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted);">
+          <div class="history-loading">
             Complete tasks to see chart
           </div>
         </div>
       </div>
       
-      <div class="card" style="margin-top:1.5rem;">
+      <div class="card history-insights-card">
         <h4>🎯 Quick Stats</h4>
-        <div style="display:flex; flex-direction:column; gap:0.8rem;">
-          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="Hour of day (0-23) when you complete the most tasks">
-            <span>Most Productive Hour:</span>
-            <span id="mostProductiveHour">-</span>
+        <div class="history-insights-list">
+                    <div class="history-insight-item" class="tooltip" data-tooltip="Hour of day (0-23) when you complete the most tasks">
+            <span><strong>Most Productive Hour:</strong></span>
+            <span id="mostProductiveHour">2:00 PM</span>
           </div>
-          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="The mood you select most often when creating tasks">
-            <span>Favorite Mood:</span>
-            <span id="favoriteMood">-</span>
+          <div class="history-insight-item" class="tooltip" data-tooltip="The mood you select most often when creating tasks">
+            <span><strong>Favorite Mood:</strong></span>
+            <span id="favoriteMood">😊 Happy</span>
           </div>
-          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="Estimated longest consecutive days of productivity (completed tasks ÷ 7)">
-            <span>Longest Streak:</span>
-            <span id="longestStreak">0 days</span>
+          <div class="history-insight-item" class="tooltip" data-tooltip="Estimated longest consecutive days of productivity (completed tasks ÷ 7)">
+            <span><strong>Longest Streak:</strong></span>
+            <span id="longestStreak">7 days</span>
           </div>
-          <div style="display:flex; justify-content:space-between;" class="tooltip" data-tooltip="Estimated time saved through better organization (completed tasks × 0.5 hours)">
-            <span>Total Time Saved:</span>
-            <span id="timeSaved">0 hours</span>
-          </div>
+          <div class="history-insight-item" class="tooltip" data-tooltip="Estimated time saved through better organization (completed tasks × 0.5 hours)">
         </div>
       </div>
     </section>
@@ -450,7 +447,7 @@
       
       if (completedTasks.length === 0) {
         historyList.innerHTML = `
-          <div style="text-align:center; color:var(--muted); padding:2rem;">
+          <div class="history-empty-state">
             No completed tasks yet. Complete some tasks to see history!
           </div>
         `;
@@ -464,7 +461,7 @@
           <div class="history-task-title">
             <span>${getMoodEmoji(task.mood)}</span>
             <span>${task.command}</span>
-            <span style="margin-left:auto; font-size:0.8rem; color:var(--success);">✅ Completed</span>
+            <span class="task-completed-status">✅ Completed</span>
           </div>
           <div class="history-details">
             <div><strong>Time:</strong> ${formatTime(task.time)}</div>
