@@ -816,6 +816,9 @@
                                 <button class="btn btn-info" onclick="showTestTask()" title="Create test task for 1 minute from now">
                                     ⏰ Test Task
                                 </button>
+                                <button class="btn btn-success" onclick="testTaskCreation()" title="Test dashboard task creation">
+                                    ✅ Test Add
+                                </button>
                                 <button class="btn btn-secondary" onclick="testWorkflow()" title="Test complete workflow">
                                     🧪 Full Test
                                 </button>
@@ -1411,17 +1414,19 @@
 
                 try {
                     const taskData = {
-                        title: title.trim(),
+                        command: title.trim(),  // Backend expects 'command' not 'title'
                         description: description.trim(),
                         priority: priority,
-                        category: 'General',
-                        due_at: dueDate ? new Date(dueDate).toISOString() : null
+                        time: dueDate ? new Date(dueDate).toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}) : '09:00',
+                        deadline: dueDate ? dueDate : null,
+                        mood: 'focused',  // Default mood
+                        status: 'pending'
                     };
 
                     // Create task via API
                     const result = await window.apiHelpers.createTask(taskData);
                     
-                    if (result.success) {
+                    if (result && result.id) {
                         // Reset form
                         document.getElementById('quickAddForm').reset();
 
@@ -1431,7 +1436,7 @@
                         // Show success notification
                         this.showNotification('Task added successfully!', 'success');
                     } else {
-                        throw new Error(result.message || 'Failed to create task');
+                        throw new Error('Failed to create task - no ID returned');
                     }
 
                 } catch (error) {
@@ -1440,13 +1445,14 @@
                     // Fallback: add to localStorage
                     const newTask = {
                         id: Date.now(),
-                        title: title.trim(),
+                        command: title.trim(),  // Use 'command' to match backend
                         description: description.trim(),
                         priority: priority,
-                        due_at: dueDate ? new Date(dueDate).getTime() : null,
-                        created_at: Date.now(),
-                        completed: false,
-                        category: 'General'
+                        time: dueDate ? new Date(dueDate).toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}) : '09:00',
+                        deadline: dueDate ? dueDate : null,
+                        createdAt: new Date().toISOString(),
+                        status: 'pending',
+                        mood: 'focused'
                     };
 
                     this.tasks.unshift(newTask);
@@ -1749,6 +1755,44 @@
             // Initialize dashboard only if authenticated
             initializeDashboard();
         });
+
+        // Test function for task creation
+        async function testTaskCreation() {
+            console.log('🧪 Testing task creation...');
+            
+            try {
+                const testTaskData = {
+                    command: 'Test Task from Dashboard',
+                    description: 'This is a test task created via the dashboard test button',
+                    priority: 'High',
+                    time: '15:30',
+                    mood: 'excited',
+                    status: 'pending'
+                };
+
+                console.log('📤 Sending task data:', testTaskData);
+                
+                const result = await window.apiHelpers.createTask(testTaskData);
+                console.log('📥 Received result:', result);
+                
+                if (result && result.id) {
+                    console.log('✅ Task created successfully!');
+                    alert('✅ Test task created successfully! Check the console for details.');
+                    
+                    // Refresh the dashboard
+                    if (window.dashboard) {
+                        await window.dashboard.loadTasks();
+                    }
+                } else {
+                    console.error('❌ No ID in result:', result);
+                    alert('❌ Test failed - no task ID returned');
+                }
+                
+            } catch (error) {
+                console.error('❌ Test task creation failed:', error);
+                alert('❌ Test failed: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>
