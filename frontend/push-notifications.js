@@ -11,6 +11,11 @@ class PushNotificationSystem {
     this.publicVapidKey = null; // Will be generated
     this.subscription = null;
     
+    // Determine backend API base
+    this.API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+      ? 'http://localhost:3000/api'
+      : 'https://task-scheduler-backend-production-c243.up.railway.app/api';
+    
     // FREE push notification service options
     this.pushService = {
       // Option 1: Firebase Cloud Messaging (FREE)
@@ -66,8 +71,10 @@ class PushNotificationSystem {
    */
   async registerServiceWorker() {
     try {
-      this.swRegistration = await navigator.serviceWorker.register('/sw-notifications.js');
-      console.log('✅ Service Worker registered for notifications');
+      // Reuse main service worker for notifications
+      this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+      console.log('✅ Service Worker ready for notifications');
       
       // Update service worker if needed
       this.swRegistration.addEventListener('updatefound', () => {
@@ -165,7 +172,7 @@ class PushNotificationSystem {
    */
   async sendSubscriptionToBackend() {
     try {
-      const response = await fetch('http://localhost:3000/api/push/subscribe', {
+      const response = await fetch(`${this.API_BASE}/push/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -252,7 +259,7 @@ class PushNotificationSystem {
    */
   async removeSubscriptionFromBackend() {
     try {
-      await fetch('http://localhost:3000/api/push/unsubscribe', {
+      await fetch(`${this.API_BASE}/push/unsubscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,7 +279,7 @@ class PushNotificationSystem {
    */
   async sendTestNotification() {
     try {
-      const response = await fetch('http://localhost:3000/api/push/test', {
+      const response = await fetch(`${this.API_BASE}/push/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -315,7 +322,7 @@ class PushNotificationSystem {
    */
   async scheduleTaskNotification(task) {
     try {
-      const response = await fetch('http://localhost:3000/api/push/schedule', {
+      const response = await fetch(`${this.API_BASE}/push/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

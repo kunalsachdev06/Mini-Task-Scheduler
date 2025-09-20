@@ -78,13 +78,14 @@ async function initializeServiceWorker() {
   if ('serviceWorker' in navigator) {
     try {
       // Register using absolute path so it works from any page
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      serviceWorker = registration;
+      await navigator.serviceWorker.register('/sw.js');
+      // Wait until the SW is active and ready
+      serviceWorker = await navigator.serviceWorker.ready;
 
       // Listen for messages from service worker
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
-      console.log('Service Worker registered successfully');
+      console.log('Service Worker registered and ready');
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
@@ -597,11 +598,6 @@ function logAction(action) {
 }
 
 // FULLSCREEN NOTIFICATION SYSTEM
-function requestNotificationPermission() {
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-}
 
 function startNotificationChecker() {
   setInterval(checkTaskNotifications, 10000); // Check every 10 seconds for better accuracy
@@ -650,31 +646,51 @@ async function showBrowserNotification(task) {
   const title = '⏰ Task Reminder';
   const body = `${task.command}\nPriority: ${task.priority} | Mood: ${getMoodEmoji(task.mood)}`;
   
-  // If service worker is available, use it for better background support
-  if (serviceWorker && serviceWorker.active) {
-    serviceWorker.active.postMessage({
-      type: 'SHOW_NOTIFICATION',
-      title: title,
-      body: body,
-      tag: task.id.toString(),
-      icon: './assets/logo.png'
-    });
-  } else {
-    // Fallback to regular notification
-    const notification = new Notification(title, {
-      body: body,
-      icon: './assets/logo.png',
-      badge: './assets/logo.png',
-      tag: task.id.toString(),
-      vibrate: [200, 100, 200],
-      requireInteraction: true
-    });
-
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
+  try {
+    // Prefer using ServiceWorkerRegistration for better background support
+    const registration = serviceWorker || (await navigator.serviceWorker.ready);
+    if (registration && registration.showNotification) {
+      await registration.showNotification(title, {
+        body: body,
+        icon: './assets/logo.png',
+        badge: './assets/logo.png',
+        tag: task.id.toString(),
+        vibrate: [200, 100, 200],
+        requireInteraction: true,
+        data: { taskId: task.id }
+      });
+      return;
+    }
+  } catch (e) {
+    // Fall through to message or direct Notification
   }
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SHOW_NOTIFICATION',
+      title,
+      body,
+      tag: task.id.toString(),
+      icon: './assets/logo.png',
+      data: { taskId: task.id }
+    });
+    return;
+  }
+
+  // Fallback to regular notification
+  const notification = new Notification(title, {
+    body: body,
+    icon: './assets/logo.png',
+    badge: './assets/logo.png',
+    tag: task.id.toString(),
+    vibrate: [200, 100, 200],
+    requireInteraction: true
+  });
+
+  notification.onclick = () => {
+    window.focus();
+    notification.close();
+  };
 }
 
 function showFullscreenNotification(task) {
@@ -820,18 +836,4 @@ function testNotification() {
   showBrowserNotification(testTask);
   showFullscreenNotification(testTask);
   logAction("Test notification triggered (browser + fullscreen)");
-}
-
-// Demo function for professors - can be called from browser console
-window.demoNotification = function() {
-  const demoTask = {
-    id: 888,
-    command: "Professor Demo - Task Reminder System",
-    time: new Date().toTimeString().slice(0,5),
-    priority: "High",
-    mood: "excited",
-    deadline: new Date().toISOString().split('T')[0]
-  };
-  showFullscreenNotification(demoTask);
-  console.log("Demo notification triggered for professor presentation");
 }

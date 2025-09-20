@@ -2,7 +2,7 @@
 <html lang="en" class="light">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>Mini Task Scheduler - Your Digital Productivity Assistant</title>
   <meta name="description" content="A powerful, secure task scheduler with 3-factor authentication, advanced scheduling, and beautiful design.">
   
@@ -259,8 +259,8 @@
     </a>
     <div class="navlinks">
       <a href="index.html" class="active">Home</a>
-      <a href="dashboard-enhanced.html" id="dashboardLink" class="nav-hidden">Dashboard</a>
-      <a href="history.html" id="historyLink" class="nav-hidden">History</a>
+      <a href="dashboard-enhanced.html">Dashboard</a>
+      <a href="history.html">History</a>
       <a href="about.html">About</a>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
         <span id="theme-icon">🌙</span>
@@ -283,26 +283,26 @@
         
         <!-- Quick Stats -->
         <div class="grid grid-cols-3 stats-grid">
-          <div class="stat-item animate-bounce-in delay-02">
+          <div class="stat-item animate-bounce-in" style="animation-delay: 0.2s">
             <div class="stat-number">99.9%</div>
             <div class="stat-label">Uptime</div>
           </div>
-          <div class="stat-item animate-bounce-in delay-04">
+          <div class="stat-item animate-bounce-in" style="animation-delay: 0.4s">
             <div class="stat-number">256-bit</div>
             <div class="stat-label">Encryption</div>
           </div>
-          <div class="stat-item animate-bounce-in delay-06">
+          <div class="stat-item animate-bounce-in" style="animation-delay: 0.6s">
             <div class="stat-number">3-Factor</div>
             <div class="stat-label">Authentication</div>
           </div>
         </div>
         
         <!-- CTA Buttons -->
-        <div class="flex gap-4 mt-8 hero-buttons">
-          <a href="register-enhanced.html" class="btn btn-primary btn-lg animate-slide-in-right delay-08">
+        <div class="flex gap-4 mt-8" style="justify-content: center; flex-wrap: wrap;">
+          <a href="register-enhanced.html" class="btn btn-primary btn-lg animate-slide-in-right" style="animation-delay: 0.8s">
             🚀 Get Started
           </a>
-          <a href="login.html" class="btn btn-secondary btn-lg animate-slide-in-right delay-10">
+          <a href="login.html" class="btn btn-secondary btn-lg animate-slide-in-right" style="animation-delay: 1s">
             🔐 Sign In
           </a>
         </div>
@@ -311,37 +311,37 @@
 
     <!-- Features Section -->
     <section class="feature-grid grid grid-cols-3 mt-16">
-      <div class="feature-card animate-fade-in delay-02">
+      <div class="feature-card animate-fade-in" style="animation-delay: 0.2s">
         <div class="feature-icon">🛡️</div>
         <h3 class="mb-4">Advanced Security</h3>
         <p>Multi-factor authentication with face recognition, SMS verification, and enterprise-grade encryption to keep your data safe.</p>
       </div>
       
-      <div class="feature-card animate-fade-in delay-04">
+      <div class="feature-card animate-fade-in" style="animation-delay: 0.4s">
         <div class="feature-icon">📱</div>
         <h3 class="mb-4">Cross-Platform</h3>
         <p>Works seamlessly across all devices with our responsive design and Progressive Web App capabilities for offline access.</p>
       </div>
       
-      <div class="feature-card animate-fade-in delay-06">
+      <div class="feature-card animate-fade-in" style="animation-delay: 0.6s">
         <div class="feature-icon">⚡</div>
         <h3 class="mb-4">Lightning Fast</h3>
         <p>Built with performance in mind using optimized C backend and modern web technologies for instant response times.</p>
       </div>
       
-      <div class="feature-card animate-fade-in delay-08">
+      <div class="feature-card animate-fade-in" style="animation-delay: 0.8s">
         <div class="feature-icon">🔄</div>
         <h3 class="mb-4">Smart Sync</h3>
         <p>Real-time synchronization across all your devices with intelligent conflict resolution and offline-first design.</p>
       </div>
       
-      <div class="feature-card animate-fade-in delay-10">
+      <div class="feature-card animate-fade-in" style="animation-delay: 1s">
         <div class="feature-icon">📊</div>
         <h3 class="mb-4">Analytics</h3>
         <p>Comprehensive insights into your productivity patterns with detailed charts, reports, and improvement suggestions.</p>
       </div>
       
-      <div class="feature-card animate-fade-in delay-12">
+      <div class="feature-card animate-fade-in" style="animation-delay: 1.2s">
         <div class="feature-icon">🎨</div>
         <h3 class="mb-4">Beautiful Design</h3>
         <p>Carefully crafted interface with dark mode support, accessibility features, and animations that enhance usability.</p>
@@ -349,7 +349,7 @@
     </section>
 
     <!-- Call to Action Section -->
-    <section class="cta-section card animate-fade-in delay-14">
+    <section class="cta-section card animate-fade-in" style="animation-delay: 1.4s">
       <div class="floating-elements">
         <div class="floating-element"></div>
         <div class="floating-element"></div>
@@ -358,7 +358,7 @@
       <div class="cta-content">
         <h2 class="mb-6">Ready to Transform Your Productivity?</h2>
         <p class="mb-8">Join thousands of users who have already revolutionized their time management with our advanced task scheduling platform.</p>
-        <a href="register-enhanced.html" class="btn cta-secondary btn-lg">
+        <a href="register-enhanced.html" class="btn btn-secondary btn-lg" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);">
           🎯 Start Your Journey
         </a>
       </div>
@@ -505,26 +505,6 @@
       });
     }
     
-    // Check authentication and show/hide navigation links
-    function checkAuthenticationForNavigation() {
-      const token = localStorage.getItem('authToken');
-      const dashboardLink = document.getElementById('dashboardLink');
-      const historyLink = document.getElementById('historyLink');
-      
-      if (token && dashboardLink && historyLink) {
-        dashboardLink.style.display = 'inline-block';
-        historyLink.style.display = 'inline-block';
-      }
-    }
-
-    // Listen for login events to update navigation
-    window.addEventListener('userLoggedIn', checkAuthenticationForNavigation);
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'authToken') {
-        checkAuthenticationForNavigation();
-      }
-    });
-    
     // Initialize everything
     document.addEventListener('DOMContentLoaded', () => {
       initializeTheme();
@@ -534,7 +514,6 @@
       handleVisibilityChange();
       logPerformanceMetrics();
       registerServiceWorker();
-      checkAuthenticationForNavigation(); // Add auth check
       
       console.log('🎉 Task Scheduler initialized successfully!');
     });

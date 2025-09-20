@@ -1,17 +1,17 @@
 // Enhanced Service Worker with Push Notifications
 // Enables offline functionality and background notifications
 
-const CACHE_NAME = 'task-scheduler-v1.0';
+const CACHE_NAME = 'task-scheduler-v1.1';
 const urlsToCache = [
   '/',
   '/index.html',
   '/dashboard-enhanced.html',
   '/register-enhanced.html',
+  '/history.html',
   '/styles-enhanced.css',
   '/app.js',
   '/script.js',
-  '/auth-free.js',
-  '/face-recognition.js',
+  // Only include files that actually exist to avoid install failures
   '/push-notifications.js',
   '/assets/logo.png',
   '/assets/logo.svg',
@@ -19,14 +19,20 @@ const urlsToCache = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
 ];
 
+// Backend API base (SW cannot access window). Adjust based on host.
+const API_BASE = self.location.hostname.includes('localhost')
+  ? 'http://localhost:3000/api'
+  : 'https://task-scheduler-backend-production-c243.up.railway.app/api';
+
 // Install event - cache resources
 self.addEventListener('install', event => {
   console.log('🔧 Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then(async cache => {
         console.log('📦 Caching app resources');
-        return cache.addAll(urlsToCache);
+        // Add resources individually to avoid entire install failing on one 404
+        await Promise.allSettled(urlsToCache.map(u => cache.add(u)));
       })
       .then(() => {
         console.log('✅ Service Worker installed successfully');
@@ -224,6 +230,24 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SCHEDULE_NOTIFICATION') {
     scheduleLocalNotification(event.data.notification);
   }
+
+  // Show a notification when asked by the page (for reliability/background)
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, body, tag, icon, data, actions, requireInteraction } = event.data;
+    event.waitUntil(
+      self.registration.showNotification(title || 'Notification', {
+        body: body || '',
+        icon: icon || '/assets/logo.png',
+        badge: '/assets/logo.png',
+        tag: tag || 'default',
+        data: data || {},
+        actions: actions || [],
+        requireInteraction: !!requireInteraction,
+        vibrate: [200, 100, 200],
+        timestamp: Date.now()
+      })
+    );
+  }
 });
 
 // ============================================
@@ -236,7 +260,7 @@ async function handleTaskComplete(taskId) {
     console.log('✅ Marking task complete:', taskId);
 
     // Try to send to backend
-    const response = await fetch(`/api/tasks/${taskId}/complete`, {
+    const response = await fetch(`${API_BASE}/tasks/${taskId}/complete`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -273,7 +297,7 @@ async function handleTaskSnooze(taskId, minutes) {
     const snoozeTime = new Date(Date.now() + minutes * 60 * 1000);
 
     // Try to send to backend
-    const response = await fetch(`/api/tasks/${taskId}/snooze`, {
+    const response = await fetch(`${API_BASE}/tasks/${taskId}/snooze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -361,14 +385,14 @@ async function processOfflineAction(actionData) {
 
   switch (action) {
     case 'complete-task':
-      await fetch(`/api/tasks/${data.taskId}/complete`, {
+      await fetch(`${API_BASE}/tasks/${data.taskId}/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
       break;
 
     case 'snooze-task':
-      await fetch(`/api/tasks/${data.taskId}/snooze`, {
+      await fetch(`${API_BASE}/tasks/${data.taskId}/snooze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ snoozeUntil: data.snoozeUntil })
@@ -404,7 +428,7 @@ async function syncNotifications() {
     console.log('🔄 Syncing notifications...');
     
     // Fetch pending notifications from backend
-    const response = await fetch('/api/notifications/pending');
+  const response = await fetch(`${API_BASE}/notifications/pending`);
     if (response.ok) {
       const notifications = await response.json();
       
