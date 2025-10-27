@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Mini Task Scheduler</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .auth-box {
+      background: var(--card-bg, white);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 450px;
+      width: 100%;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .auth-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: var(--text, #1a202c);
+    }
+
+    .auth-header p {
+      color: var(--text-secondary, #718096);
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border, #e2e8f0);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary, #718096);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .auth-tab.active {
+      color: var(--primary, #667eea);
+      border-bottom-color: var(--primary, #667eea);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text, #1a202c);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border, #e2e8f0);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary, #667eea);
+    }
+
+    .phone-input-wrapper {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .country-code {
+      width: 100px;
+    }
+
+    .phone-number {
+      flex: 1;
+    }
+
+    .btn-auth {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-auth:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-auth:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #recaptcha-container {
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .otp-container {
+      display: none;
+      margin-top: 1.5rem;
+    }
+
+    .otp-container.active {
+      display: block;
+    }
+
+    .otp-inputs {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .otp-input {
+      width: 50px;
+      height: 60px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border: 2px solid var(--border, #e2e8f0);
+      border-radius: 8px;
+    }
+
+    .otp-input:focus {
+      outline: none;
+      border-color: var(--primary, #667eea);
+    }
+
+    .resend-otp {
+      text-align: center;
+      margin-top: 1rem;
+      color: var(--text-secondary, #718096);
+    }
+
+    .resend-otp button {
+      background: none;
+      border: none;
+      color: var(--primary, #667eea);
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    .message {
+      padding: 0.875rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .message.active {
+      display: block;
+    }
+
+    .message.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .message.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .message.info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 1.5rem 0;
+      color: var(--text-secondary, #718096);
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border, #e2e8f0);
+    }
+
+    .divider span {
+      padding: 0 1rem;
+    }
+
+    .guest-login {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .guest-login button {
+      background: none;
+      border: 2px solid var(--primary, #667eea);
+      color: var(--primary, #667eea);
+      padding: 0.625rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .guest-login button:hover {
+      background: var(--primary, #667eea);
+      color: white;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 3px solid white;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-header">
+        <h1>🎯 Mini Task Scheduler</h1>
+        <p>Sign in to manage your tasks</p>
+      </div>
+
+      <!-- Message Box -->
+      <div id="message" class="message"></div>
+
+      <!-- Auth Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="phone">📱 Phone</button>
+        <button class="auth-tab" data-tab="email">📧 Email</button>
+      </div>
+
+      <!-- Phone Authentication Form -->
+      <form id="phone-auth-form" class="auth-form active">
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <div class="phone-input-wrapper">
+            <select class="country-code" id="country-code">
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+91" selected>🇮🇳 +91</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+81">🇯🇵 +81</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+61">🇦🇺 +61</option>
+            </select>
+            <input type="tel" id="phone" class="phone-number" placeholder="1234567890" required>
+          </div>
+        </div>
+
+        <!-- reCAPTCHA Container -->
+        <div id="recaptcha-container"></div>
+
+        <button type="submit" id="send-otp-btn" class="btn-auth">Send OTP</button>
+
+        <!-- OTP Input (Hidden Initially) -->
+        <div id="otp-container" class="otp-container">
+          <div class="form-group">
+            <label>Enter 6-Digit OTP</label>
+            <div class="otp-inputs">
+              <input type="text" class="otp-input" maxlength="1" data-index="0">
+              <input type="text" class="otp-input" maxlength="1" data-index="1">
+              <input type="text" class="otp-input" maxlength="1" data-index="2">
+              <input type="text" class="otp-input" maxlength="1" data-index="3">
+              <input type="text" class="otp-input" maxlength="1" data-index="4">
+              <input type="text" class="otp-input" maxlength="1" data-index="5">
+            </div>
+          </div>
+          <button type="button" id="verify-otp-btn" class="btn-auth">Verify OTP</button>
+          <div class="resend-otp">
+            Didn't receive code? <button type="button" id="resend-otp-btn">Resend OTP</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Email Authentication Form -->
+      <form id="email-auth-form" class="auth-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" id="email-login-btn" class="btn-auth">Sign In</button>
+        <div class="divider"><span>or</span></div>
+        <button type="button" id="email-signup-btn" class="btn-auth" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Create Account</button>
+      </form>
+
+      <!-- Guest Login -->
+      <div class="guest-login">
+        <button id="guest-login-btn">Continue as Guest</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { 
+      getAuth, 
+      RecaptchaVerifier, 
+      signInWithPhoneNumber,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged 
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc 
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKSP427ylNW6ZAqZsZJ92CS549t76mSMk",
+      authDomain: "mini-task-scheduler.firebaseapp.com",
+      projectId: "mini-task-scheduler",
+      storageBucket: "mini-task-scheduler.firebasestorage.app",
+      messagingSenderId: "997330328846",
+      appId: "1:997330328846:web:c217d6b5e4686f70298b5f",
+      measurementId: "G-V0M473G51C"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    console.log('🔥 Firebase initialized successfully');
+
+    // UI Elements
+    const phoneTabs = document.querySelectorAll('.auth-tab');
+    const authForms = document.querySelectorAll('.auth-form');
+    const phoneAuthForm = document.getElementById('phone-auth-form');
+    const emailAuthForm = document.getElementById('email-auth-form');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+    const resendOtpBtn = document.getElementById('resend-otp-btn');
+    const emailLoginBtn = document.getElementById('email-login-btn');
+    const emailSignupBtn = document.getElementById('email-signup-btn');
+    const guestLoginBtn = document.getElementById('guest-login-btn');
+    const otpContainer = document.getElementById('otp-container');
+    const messageBox = document.getElementById('message');
+    const otpInputs = document.querySelectorAll('.otp-input');
+
+    let confirmationResult = null;
+    let recaptchaVerifier = null;
+
+    // Show Message
+    function showMessage(text, type = 'info') {
+      messageBox.textContent = text;
+      messageBox.className = `message active ${type}`;
+      setTimeout(() => {
+        messageBox.classList.remove('active');
+      }, 5000);
+    }
+
+    // Tab Switching
+    phoneTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        
+        phoneTabs.forEach(t => t.classList.remove('active'));
+        authForms.forEach(f => f.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(`${tabName}-auth-form`).classList.add('active');
+        
+        // Reset reCAPTCHA if switching tabs
+        if (recaptchaVerifier && tabName === 'phone') {
+          initializeRecaptcha();
+        }
+      });
+    });
+
+    // Initialize reCAPTCHA
+    function initializeRecaptcha() {
+      try {
+        if (recaptchaVerifier) {
+          recaptchaVerifier.clear();
+        }
+
+        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'normal',
+          'callback': () => {
+            console.log('✅ reCAPTCHA verified');
+            sendOtpBtn.disabled = false;
+          },
+          'expired-callback': () => {
+            console.warn('⚠️ reCAPTCHA expired');
+            showMessage('reCAPTCHA expired. Please solve it again.', 'error');
+            sendOtpBtn.disabled = true;
+          }
+        });
+
+        recaptchaVerifier.render();
+        console.log('✅ reCAPTCHA initialized');
+      } catch (error) {
+        console.error('❌ reCAPTCHA error:', error);
+        showMessage('Failed to initialize reCAPTCHA. Please refresh.', 'error');
+      }
+    }
+
+    // Initialize on load
+    initializeRecaptcha();
+
+    // Phone Authentication - Send OTP
+    phoneAuthForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const countryCode = document.getElementById('country-code').value;
+      const phoneNumber = document.getElementById('phone').value;
+      const fullPhoneNumber = countryCode + phoneNumber;
+
+      try {
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.innerHTML = 'Sending OTP<span class="spinner"></span>';
+        
+        confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, recaptchaVerifier);
+        
+        showMessage('✅ OTP sent successfully! Check your phone.', 'success');
+        otpContainer.classList.add('active');
+        sendOtpBtn.style.display = 'none';
+        otpInputs[0].focus();
+        
+        console.log('✅ OTP sent to:', fullPhoneNumber);
+      } catch (error) {
+        console.error('❌ Error sending OTP:', error);
+        showMessage(`Failed to send OTP: ${error.message}`, 'error');
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.innerHTML = 'Send OTP';
+        
+        // Reset reCAPTCHA
+        initializeRecaptcha();
+      }
+    });
+
+    // OTP Input Auto-focus
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+          otpInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+          otpInputs[index - 1].focus();
+        }
+      });
+    });
+
+    // Verify OTP
+    verifyOtpBtn.addEventListener('click', async () => {
+      const otp = Array.from(otpInputs).map(input => input.value).join('');
+      
+      if (otp.length !== 6) {
+        showMessage('Please enter the complete 6-digit OTP', 'error');
+        return;
+      }
+
+      try {
+        verifyOtpBtn.disabled = true;
+        verifyOtpBtn.innerHTML = 'Verifying<span class="spinner"></span>';
+        
+        const result = await confirmationResult.confirm(otp);
+        const user = result.user;
+        
+        console.log('✅ User authenticated:', user.uid);
+        showMessage('✅ Login successful! Redirecting...', 'success');
+        
+        // Save user to Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          phoneNumber: user.phoneNumber,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        }, { merge: true });
+        
+        // Store auth state
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userId', user.uid);
+        localStorage.setItem('userPhone', user.phoneNumber);
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+        
+      } catch (error) {
+        console.error('❌ Error verifying OTP:', error);
+        showMessage('Invalid OTP. Please try again.', 'error');
+        verifyOtpBtn.disabled = false;
+        verifyOtpBtn.innerHTML = 'Verify OTP';
+        
+        // Clear OTP inputs
+        otpInputs.forEach(input => input.value = '');
+        otpInputs[0].focus();
+      }
+    });
+
+    // Resend OTP
+    resendOtpBtn.addEventListener('click', async () => {
+      const countryCode = document.getElementById('country-code').value;
+      const phoneNumber = document.getElementById('phone').value;
+      const fullPhoneNumber = countryCode + phoneNumber;
+
+      try {
+        resendOtpBtn.disabled = true;
+        resendOtpBtn.textContent = 'Sending...';
+        
+        // Reset reCAPTCHA
+        initializeRecaptcha();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, recaptchaVerifier);
+        
+        showMessage('✅ OTP resent successfully!', 'success');
+        resendOtpBtn.disabled = false;
+        resendOtpBtn.textContent = 'Resend OTP';
+        
+        // Clear OTP inputs
+        otpInputs.forEach(input => input.value = '');
+        otpInputs[0].focus();
+        
+      } catch (error) {
+        console.error('❌ Error resending OTP:', error);
+        showMessage('Failed to resend OTP. Please try again.', 'error');
+        resendOtpBtn.disabled = false;
+        resendOtpBtn.textContent = 'Resend OTP';
+      }
+    });
+
+    // Email Login
+    emailAuthForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        emailLoginBtn.disabled = true;
+        emailLoginBtn.innerHTML = 'Signing In<span class="spinner"></span>';
+        
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        
+        console.log('✅ User authenticated:', user.uid);
+        showMessage('✅ Login successful! Redirecting...', 'success');
+        
+        // Save user to Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          lastLogin: new Date().toISOString()
+        }, { merge: true });
+        
+        // Store auth state
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userId', user.uid);
+        localStorage.setItem('userEmail', user.email);
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+        
+      } catch (error) {
+        console.error('❌ Login error:', error);
+        showMessage(`Login failed: ${error.message}`, 'error');
+        emailLoginBtn.disabled = false;
+        emailLoginBtn.innerHTML = 'Sign In';
+      }
+    });
+
+    // Email Signup
+    emailSignupBtn.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showMessage('Please enter email and password', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showMessage('Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      try {
+        emailSignupBtn.disabled = true;
+        emailSignupBtn.innerHTML = 'Creating Account<span class="spinner"></span>';
+        
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        
+        console.log('✅ User created:', user.uid);
+        showMessage('✅ Account created! Redirecting...', 'success');
+        
+        // Save user to Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        });
+        
+        // Store auth state
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userId', user.uid);
+        localStorage.setItem('userEmail', user.email);
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+        
+      } catch (error) {
+        console.error('❌ Signup error:', error);
+        showMessage(`Signup failed: ${error.message}`, 'error');
+        emailSignupBtn.disabled = false;
+        emailSignupBtn.innerHTML = 'Create Account';
+      }
+    });
+
+    // Guest Login
+    guestLoginBtn.addEventListener('click', () => {
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userId', 'guest-' + Date.now());
+      localStorage.setItem('isGuest', 'true');
+      showMessage('✅ Continuing as guest...', 'success');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+    });
+
+    // Check if user is already logged in
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('✅ User already logged in:', user.uid);
+        showMessage('Already logged in! Redirecting...', 'info');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      }
+    });
+  </script>
+</body>
+</html>

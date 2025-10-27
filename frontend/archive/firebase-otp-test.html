@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase OTP Test & Debug</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #1a202c;
+      margin-bottom: 0.5rem;
+    }
+
+    .status-box {
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      font-weight: 500;
+    }
+
+    .status-box.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #10b981;
+    }
+
+    .status-box.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #ef4444;
+    }
+
+    .status-box.info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 2px solid #3b82f6;
+    }
+
+    .form-group {
+      margin: 1.5rem 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #1a202c;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .phone-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .phone-group select {
+      width: 120px;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #recaptcha-container {
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .otp-section {
+      display: none;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid #e2e8f0;
+    }
+
+    .otp-section.active {
+      display: block;
+    }
+
+    .otp-inputs {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .otp-input {
+      width: 50px;
+      height: 60px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .log-box {
+      background: #1a202c;
+      color: #10b981;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+    }
+
+    .log-entry {
+      margin-bottom: 0.5rem;
+    }
+
+    .log-entry.error {
+      color: #ef4444;
+    }
+
+    .log-entry.success {
+      color: #10b981;
+    }
+
+    .log-entry.warning {
+      color: #f59e0b;
+    }
+
+    .checklist {
+      background: #f8fafc;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.75rem 0;
+      font-size: 0.95rem;
+    }
+
+    .checklist-item.checking {
+      color: #3b82f6;
+    }
+
+    .checklist-item.success {
+      color: #10b981;
+    }
+
+    .checklist-item.error {
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔥 Firebase OTP Debugging Tool</h1>
+    <p style="color: #718096; margin-bottom: 2rem;">Test and diagnose Firebase Phone Authentication</p>
+
+    <!-- Status Box -->
+    <div id="status-box" class="status-box info">
+      Initializing Firebase...
+    </div>
+
+    <!-- Pre-Flight Checklist -->
+    <div class="checklist">
+      <h3 style="margin-bottom: 1rem;">📋 Pre-Flight Checklist</h3>
+      <div id="checklist"></div>
+    </div>
+
+    <!-- Phone Input Form -->
+    <div class="form-group">
+      <label for="phone">Phone Number</label>
+      <div class="phone-group">
+        <select id="country-code">
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+91" selected>🇮🇳 +91</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+86">🇨🇳 +86</option>
+        </select>
+        <input type="tel" id="phone" placeholder="1234567890" />
+      </div>
+    </div>
+
+    <!-- reCAPTCHA Container -->
+    <div id="recaptcha-container"></div>
+
+    <!-- Send OTP Button -->
+    <button id="send-otp-btn" disabled>Initialize reCAPTCHA First</button>
+
+    <!-- OTP Verification Section -->
+    <div id="otp-section" class="otp-section">
+      <h3>Enter OTP</h3>
+      <div class="otp-inputs">
+        <input type="text" class="otp-input" maxlength="1" data-index="0">
+        <input type="text" class="otp-input" maxlength="1" data-index="1">
+        <input type="text" class="otp-input" maxlength="1" data-index="2">
+        <input type="text" class="otp-input" maxlength="1" data-index="3">
+        <input type="text" class="otp-input" maxlength="1" data-index="4">
+        <input type="text" class="otp-input" maxlength="1" data-index="5">
+      </div>
+      <button id="verify-otp-btn">Verify OTP</button>
+    </div>
+
+    <!-- Debug Log -->
+    <div class="log-box" id="log-box">
+      <div class="log-entry">🔍 Debug logs will appear here...</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { 
+      getAuth, 
+      RecaptchaVerifier, 
+      signInWithPhoneNumber
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    // Your Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKSP427ylNW6ZAqZsZJ92CS549t76mSMk",
+      authDomain: "mini-task-scheduler.firebaseapp.com",
+      projectId: "mini-task-scheduler",
+      storageBucket: "mini-task-scheduler.firebasestorage.app",
+      messagingSenderId: "997330328846",
+      appId: "1:997330328846:web:c217d6b5e4686f70298b5f",
+      measurementId: "G-V0M473G51C"
+    };
+
+    // Global variables
+    let app, auth, recaptchaVerifier, confirmationResult;
+    const logs = [];
+
+    // UI Elements
+    const statusBox = document.getElementById('status-box');
+    const checklist = document.getElementById('checklist');
+    const logBox = document.getElementById('log-box');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+    const otpSection = document.getElementById('otp-section');
+    const otpInputs = document.querySelectorAll('.otp-input');
+
+    // Logging function
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.className = `log-entry ${type}`;
+      logEntry.textContent = `[${timestamp}] ${message}`;
+      logBox.appendChild(logEntry);
+      logBox.scrollTop = logBox.scrollHeight;
+      logs.push({ timestamp, message, type });
+      console.log(`[${type.toUpperCase()}]`, message);
+    }
+
+    // Update status
+    function updateStatus(message, type = 'info') {
+      statusBox.textContent = message;
+      statusBox.className = `status-box ${type}`;
+    }
+
+    // Update checklist
+    function updateChecklist(item, status, message) {
+      const checklistItem = document.createElement('div');
+      checklistItem.className = `checklist-item ${status}`;
+      const icon = status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳';
+      checklistItem.textContent = `${icon} ${item}: ${message}`;
+      checklist.appendChild(checklistItem);
+    }
+
+    // Initialize Firebase
+    async function initializeFirebase() {
+      try {
+        log('🔥 Initializing Firebase...', 'info');
+        updateChecklist('Firebase SDK', 'checking', 'Loading...');
+        
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        
+        log('✅ Firebase initialized successfully', 'success');
+        updateChecklist('Firebase SDK', 'success', 'Loaded successfully');
+        updateStatus('✅ Firebase initialized successfully', 'success');
+        
+        // Check authentication state
+        updateChecklist('Authentication', 'checking', 'Checking...');
+        log('🔍 Checking authentication configuration...', 'info');
+        
+        // Try to initialize reCAPTCHA
+        await initializeRecaptcha();
+        
+        return true;
+      } catch (error) {
+        log(`❌ Firebase initialization failed: ${error.message}`, 'error');
+        updateChecklist('Firebase SDK', 'error', error.message);
+        updateStatus(`❌ Firebase Error: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    // Initialize reCAPTCHA with better error handling
+    async function initializeRecaptcha() {
+      try {
+        log('🔐 Initializing reCAPTCHA...', 'info');
+        updateChecklist('reCAPTCHA', 'checking', 'Loading...');
+
+        // Clear existing verifier
+        if (recaptchaVerifier) {
+          try {
+            recaptchaVerifier.clear();
+          } catch (e) {
+            log('⚠️ Error clearing old reCAPTCHA (ignoring)', 'warning');
+          }
+        }
+
+        // Clear the container
+        const container = document.getElementById('recaptcha-container');
+        container.innerHTML = '';
+
+        // Try invisible reCAPTCHA first (works better for localhost)
+        log('🔄 Trying invisible reCAPTCHA for better compatibility...', 'info');
+        
+        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': (response) => {
+            log('✅ reCAPTCHA solved automatically!', 'success');
+            updateChecklist('reCAPTCHA', 'success', 'Verified (invisible)');
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = 'Send OTP';
+            updateStatus('✅ Ready to send OTP', 'success');
+          },
+          'expired-callback': () => {
+            log('⚠️ reCAPTCHA expired', 'warning');
+            updateStatus('⚠️ reCAPTCHA expired. Reinitializing...', 'error');
+            setTimeout(() => initializeRecaptcha(), 1000);
+          },
+          'error-callback': (error) => {
+            log(`❌ reCAPTCHA error: ${error}`, 'error');
+            updateChecklist('reCAPTCHA', 'error', 'Failed - trying fallback');
+            // Try visible reCAPTCHA as fallback
+            setTimeout(() => tryVisibleRecaptcha(), 1000);
+          }
+        });
+
+        await recaptchaVerifier.render();
+        log('✅ Invisible reCAPTCHA initialized', 'success');
+        updateChecklist('reCAPTCHA', 'success', 'Ready (invisible mode)');
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = 'Send OTP';
+        updateStatus('✅ Ready to send OTP', 'success');
+        
+      } catch (error) {
+        log(`❌ Invisible reCAPTCHA failed: ${error.message}`, 'error');
+        log('🔄 Trying visible reCAPTCHA as fallback...', 'info');
+        
+        // Try visible reCAPTCHA as fallback
+        setTimeout(() => tryVisibleRecaptcha(), 1000);
+      }
+    }
+
+    // Fallback to visible reCAPTCHA
+    async function tryVisibleRecaptcha() {
+      try {
+        log('🔐 Initializing visible reCAPTCHA...', 'info');
+        
+        if (recaptchaVerifier) {
+          try {
+            recaptchaVerifier.clear();
+          } catch (e) {}
+        }
+
+        const container = document.getElementById('recaptcha-container');
+        container.innerHTML = '';
+
+        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'normal',
+          'callback': (response) => {
+            log('✅ reCAPTCHA solved!', 'success');
+            updateChecklist('reCAPTCHA', 'success', 'Verified');
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = 'Send OTP';
+            updateStatus('✅ Ready to send OTP', 'success');
+          },
+          'expired-callback': () => {
+            log('⚠️ reCAPTCHA expired', 'warning');
+            updateStatus('⚠️ Please solve reCAPTCHA again', 'error');
+            sendOtpBtn.disabled = true;
+          }
+        });
+
+        await recaptchaVerifier.render();
+        log('✅ Visible reCAPTCHA loaded', 'success');
+        updateChecklist('reCAPTCHA', 'success', 'Widget loaded - please solve');
+        sendOtpBtn.textContent = 'Solve reCAPTCHA first';
+        
+      } catch (error) {
+        log(`❌ All reCAPTCHA methods failed: ${error.message}`, 'error');
+        updateChecklist('reCAPTCHA', 'error', error.message);
+        updateStatus(`❌ reCAPTCHA Error: ${error.message}`, 'error');
+        
+        // Provide guidance
+        log('💡 Possible solutions:', 'warning');
+        log('1. Check if localhost is in Firebase Authorized domains', 'warning');
+        log('2. Clear browser cache and reload', 'warning');
+        log('3. Try using Test Phone Numbers in Firebase Console', 'warning');
+        log('4. Check Firebase Console for reCAPTCHA configuration', 'warning');
+      }
+    }
+
+    // Send OTP
+    sendOtpBtn.addEventListener('click', async () => {
+      const countryCode = document.getElementById('country-code').value;
+      const phoneNumber = document.getElementById('phone').value.trim();
+      
+      if (!phoneNumber) {
+        updateStatus('❌ Please enter a phone number', 'error');
+        log('❌ Phone number is empty', 'error');
+        return;
+      }
+
+      const fullPhoneNumber = countryCode + phoneNumber;
+      log(`📱 Attempting to send OTP to: ${fullPhoneNumber}`, 'info');
+      updateChecklist('Phone Number', 'checking', fullPhoneNumber);
+
+      try {
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = 'Sending OTP...';
+        updateStatus('📤 Sending OTP...', 'info');
+
+        log('🔄 Calling Firebase signInWithPhoneNumber...', 'info');
+        confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, recaptchaVerifier);
+        
+        log('✅ OTP sent successfully!', 'success');
+        updateChecklist('OTP Sent', 'success', 'SMS sent to phone');
+        updateStatus('✅ OTP sent! Check your phone for SMS', 'success');
+        
+        // Show OTP input section
+        otpSection.classList.add('active');
+        otpInputs[0].focus();
+        
+      } catch (error) {
+        log(`❌ Failed to send OTP: ${error.code} - ${error.message}`, 'error');
+        updateChecklist('OTP Sent', 'error', error.message);
+        
+        // Provide specific error guidance
+        if (error.code === 'auth/invalid-phone-number') {
+          updateStatus('❌ Invalid phone number format', 'error');
+          log('💡 Tip: Use format +91XXXXXXXXXX (country code + number)', 'warning');
+        } else if (error.code === 'auth/quota-exceeded') {
+          updateStatus('❌ SMS quota exceeded', 'error');
+          log('💡 Tip: Check Firebase console for SMS quota', 'warning');
+        } else if (error.code === 'auth/missing-phone-number') {
+          updateStatus('❌ Phone number is required', 'error');
+        } else if (error.code === 'auth/captcha-check-failed') {
+          updateStatus('❌ reCAPTCHA verification failed', 'error');
+          log('💡 Tip: Try refreshing and solving reCAPTCHA again', 'warning');
+        } else {
+          updateStatus(`❌ Error: ${error.message}`, 'error');
+        }
+        
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = 'Retry Send OTP';
+        
+        // Reinitialize reCAPTCHA
+        log('🔄 Reinitializing reCAPTCHA...', 'info');
+        await initializeRecaptcha();
+      }
+    });
+
+    // OTP Input Auto-focus
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+          otpInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+          otpInputs[index - 1].focus();
+        }
+      });
+    });
+
+    // Verify OTP
+    verifyOtpBtn.addEventListener('click', async () => {
+      const otp = Array.from(otpInputs).map(input => input.value).join('');
+      
+      if (otp.length !== 6) {
+        updateStatus('❌ Please enter complete 6-digit OTP', 'error');
+        log('❌ OTP incomplete', 'error');
+        return;
+      }
+
+      try {
+        verifyOtpBtn.disabled = true;
+        verifyOtpBtn.textContent = 'Verifying...';
+        updateStatus('🔍 Verifying OTP...', 'info');
+        log(`🔍 Verifying OTP: ${otp}`, 'info');
+
+        const result = await confirmationResult.confirm(otp);
+        
+        log('✅ OTP verified successfully!', 'success');
+        log(`✅ User authenticated: ${result.user.uid}`, 'success');
+        updateChecklist('OTP Verification', 'success', 'User authenticated');
+        updateStatus('✅ Success! User authenticated', 'success');
+        
+        log('🎉 Authentication complete! Redirecting in 3 seconds...', 'success');
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 3000);
+        
+      } catch (error) {
+        log(`❌ OTP verification failed: ${error.code} - ${error.message}`, 'error');
+        updateChecklist('OTP Verification', 'error', error.message);
+        
+        if (error.code === 'auth/invalid-verification-code') {
+          updateStatus('❌ Invalid OTP. Please try again.', 'error');
+        } else if (error.code === 'auth/code-expired') {
+          updateStatus('❌ OTP expired. Request a new one.', 'error');
+        } else {
+          updateStatus(`❌ Error: ${error.message}`, 'error');
+        }
+        
+        verifyOtpBtn.disabled = false;
+        verifyOtpBtn.textContent = 'Verify OTP';
+        
+        // Clear OTP inputs
+        otpInputs.forEach(input => input.value = '');
+        otpInputs[0].focus();
+      }
+    });
+
+    // Initialize on load
+    initializeFirebase();
+  </script>
+</body>
+</html>

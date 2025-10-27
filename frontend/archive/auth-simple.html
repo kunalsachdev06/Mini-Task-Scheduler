@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Firebase Auth Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #1a202c;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #718096;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .info-box {
+      background: #dbeafe;
+      border: 2px solid #3b82f6;
+      color: #1e40af;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      color: #92400e;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .success-box {
+      background: #d1fae5;
+      border: 2px solid #10b981;
+      color: #065f46;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .error-box {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin: 1.5rem 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #1a202c;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .phone-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .phone-group select {
+      width: 120px;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: transform 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .divider {
+      text-align: center;
+      margin: 2rem 0;
+      color: #718096;
+      position: relative;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    .test-credentials {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .test-credentials div {
+      margin: 0.5rem 0;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔥 Simple Firebase Test</h1>
+    <p class="subtitle">Quick authentication without reCAPTCHA issues</p>
+
+    <div id="message"></div>
+
+    <!-- Method Selection -->
+    <div id="method-selection" class="section active">
+      <div class="info-box">
+        <strong>💡 Choose Your Test Method:</strong><br>
+        Select the easiest way to test Firebase authentication
+      </div>
+
+      <button onclick="selectMethod('email')">📧 Test with Email (Easiest)</button>
+      <button onclick="selectMethod('guest')">👤 Continue as Guest</button>
+      <button onclick="selectMethod('phone')">📱 Test with Phone (Requires setup)</button>
+    </div>
+
+    <!-- Email Method -->
+    <div id="email-method" class="section">
+      <button onclick="goBack()" style="background: #6b7280; margin-bottom: 1rem;">← Back</button>
+      
+      <div class="success-box">
+        <strong>✅ Email Authentication</strong><br>
+        No reCAPTCHA required! Just create an account and login.
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="test@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password (min 6 characters)</label>
+        <input type="password" id="password" placeholder="password123">
+      </div>
+
+      <button id="email-signup-btn">Create Account & Login</button>
+      <button id="email-login-btn" style="background: #10b981;">Login (If Already Created)</button>
+    </div>
+
+    <!-- Guest Method -->
+    <div id="guest-method" class="section">
+      <button onclick="goBack()" style="background: #6b7280; margin-bottom: 1rem;">← Back</button>
+      
+      <div class="success-box">
+        <strong>✅ Guest Mode</strong><br>
+        Skip authentication entirely. Data stored locally only.
+      </div>
+
+      <button id="guest-btn">Continue as Guest</button>
+    </div>
+
+    <!-- Phone Method -->
+    <div id="phone-method" class="section">
+      <button onclick="goBack()" style="background: #6b7280; margin-bottom: 1rem;">← Back</button>
+      
+      <div class="warning-box">
+        <strong>⚠️ Prerequisites:</strong><br>
+        1. Add test phone in Firebase Console<br>
+        2. Phone authentication must be enabled<br>
+        3. May not work due to reCAPTCHA issues
+      </div>
+
+      <div class="test-credentials">
+        <strong>📋 Use these test credentials in Firebase:</strong>
+        <div>Phone: <strong>+91 9876543210</strong></div>
+        <div>OTP: <strong>123456</strong></div>
+      </div>
+
+      <div class="form-group">
+        <label>Phone Number</label>
+        <div class="phone-group">
+          <select id="country-code">
+            <option value="+91" selected>🇮🇳 +91</option>
+            <option value="+1">🇺🇸 +1</option>
+          </select>
+          <input type="tel" id="phone" placeholder="9876543210">
+        </div>
+      </div>
+
+      <div id="recaptcha-container"></div>
+      
+      <button id="phone-btn">Send OTP</button>
+      
+      <div id="otp-section" style="display: none;">
+        <div class="form-group">
+          <label for="otp-code">Enter OTP Code</label>
+          <input type="text" id="otp-code" placeholder="123456" maxlength="6">
+        </div>
+        <button id="verify-btn">Verify OTP</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      RecaptchaVerifier,
+      signInWithPhoneNumber
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKSP427ylNW6ZAqZsZJ92CS549t76mSMk",
+      authDomain: "mini-task-scheduler.firebaseapp.com",
+      projectId: "mini-task-scheduler",
+      storageBucket: "mini-task-scheduler.firebasestorage.app",
+      messagingSenderId: "997330328846",
+      appId: "1:997330328846:web:c217d6b5e4686f70298b5f",
+      measurementId: "G-V0M473G51C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    let confirmationResult = null;
+
+    console.log('🔥 Firebase initialized');
+
+    // UI Functions
+    window.selectMethod = function(method) {
+      document.getElementById('method-selection').classList.remove('active');
+      document.getElementById(`${method}-method`).classList.add('active');
+    };
+
+    window.goBack = function() {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('method-selection').classList.add('active');
+    };
+
+    function showMessage(text, type = 'info') {
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = `${type}-box`;
+      messageDiv.textContent = text;
+      messageDiv.style.display = 'block';
+    }
+
+    // Email Signup
+    document.getElementById('email-signup-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showMessage('❌ Please enter email and password', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showMessage('❌ Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      try {
+        document.getElementById('email-signup-btn').disabled = true;
+        showMessage('Creating account...', 'info');
+        
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        console.log('✅ Account created:', result.user.uid);
+        
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userId', result.user.uid);
+        localStorage.setItem('userEmail', email);
+        
+        showMessage('✅ Success! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+        
+      } catch (error) {
+        console.error('❌ Error:', error);
+        if (error.code === 'auth/email-already-in-use') {
+          showMessage('✅ Email exists! Try "Login" button instead', 'warning');
+        } else {
+          showMessage(`❌ ${error.message}`, 'error');
+        }
+        document.getElementById('email-signup-btn').disabled = false;
+      }
+    });
+
+    // Email Login
+    document.getElementById('email-login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showMessage('❌ Please enter email and password', 'error');
+        return;
+      }
+
+      try {
+        document.getElementById('email-login-btn').disabled = true;
+        showMessage('Logging in...', 'info');
+        
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        console.log('✅ Logged in:', result.user.uid);
+        
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userId', result.user.uid);
+        localStorage.setItem('userEmail', email);
+        
+        showMessage('✅ Success! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+        
+      } catch (error) {
+        console.error('❌ Error:', error);
+        showMessage(`❌ ${error.message}`, 'error');
+        document.getElementById('email-login-btn').disabled = false;
+      }
+    });
+
+    // Guest Login
+    document.getElementById('guest-btn').addEventListener('click', () => {
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userId', 'guest-' + Date.now());
+      localStorage.setItem('isGuest', 'true');
+      
+      showMessage('✅ Continuing as guest...', 'success');
+      setTimeout(() => window.location.href = 'index.html', 1000);
+    });
+
+    // Phone (with reCAPTCHA handling)
+    let recaptchaVerifier = null;
+    
+    document.getElementById('phone-btn').addEventListener('click', async () => {
+      const countryCode = document.getElementById('country-code').value;
+      const phoneNumber = document.getElementById('phone').value.trim();
+      const fullPhone = countryCode + phoneNumber;
+
+      if (!phoneNumber) {
+        showMessage('❌ Please enter phone number', 'error');
+        return;
+      }
+
+      try {
+        if (!recaptchaVerifier) {
+          recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible'
+          });
+        }
+
+        showMessage('📤 Sending OTP...', 'info');
+        confirmationResult = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifier);
+        
+        showMessage('✅ OTP sent! Enter the code below', 'success');
+        document.getElementById('otp-section').style.display = 'block';
+        
+      } catch (error) {
+        console.error('❌ Error:', error);
+        showMessage(`❌ ${error.message}. Try Email method instead!`, 'error');
+      }
+    });
+
+    document.getElementById('verify-btn').addEventListener('click', async () => {
+      const otp = document.getElementById('otp-code').value.trim();
+
+      if (otp.length !== 6) {
+        showMessage('❌ Please enter 6-digit OTP', 'error');
+        return;
+      }
+
+      try {
+        showMessage('🔍 Verifying...', 'info');
+        const result = await confirmationResult.confirm(otp);
+        
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userId', result.user.uid);
+        localStorage.setItem('userPhone', result.user.phoneNumber);
+        
+        showMessage('✅ Success! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+        
+      } catch (error) {
+        console.error('❌ Error:', error);
+        showMessage(`❌ ${error.message}`, 'error');
+      }
+    });
+  </script>
+</body>
+</html>
