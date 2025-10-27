@@ -1,8 +1,42 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Security: Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Security: Helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+      fontSrc: ["'self'", "fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://minitaskscheduler.netlify.app"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// Apply rate limiting to all API routes
+app.use('/api/', limiter);
 
 // CORS configuration
 app.use(cors({
@@ -33,7 +67,21 @@ app.get('/api/tasks', (req, res) => {
 });
 
 // Create new task
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', [
+  body('command').trim().notEmpty().isLength({ max: 500 }).escape().withMessage('Command must be between 1 and 500 characters'),
+  body('time').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid time format'),
+  body('priority').optional().isIn(['low', 'medium', 'high', 'Low', 'Medium', 'High']).withMessage('Priority must be low, medium, or high'),
+  body('status').optional().isIn(['pending', 'completed', 'in-progress']).withMessage('Invalid status'),
+], (req, res) => {
+  // Validate request
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: errors.array() 
+    });
+  }
+
   const task = req.body || {};
   if (!task.id) task.id = Date.now();
   if (!task.status) task.status = 'pending';
@@ -45,7 +93,19 @@ app.post('/api/tasks', (req, res) => {
 });
 
 // Update task
-app.put('/api/tasks/:id', (req, res) => {
+app.put('/api/tasks/:id', [
+  body('command').optional().trim().isLength({ max: 500 }).escape(),
+  body('status').optional().isIn(['pending', 'completed', 'in-progress']),
+], (req, res) => {
+  // Validate request
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: errors.array() 
+    });
+  }
+
   const { id } = req.params;
   const taskIndex = tasks.findIndex(t => t.id.toString() === id);
   

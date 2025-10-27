@@ -637,15 +637,33 @@
     </div>
   </div>
 
-  <!-- Firebase Configuration -->
-  <!-- <script type="module" src="firebase-config.js"></script> -->
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlIG3Y7XF-QTHVTQSE_2i3kFY2C0Pafv8",
+      authDomain: "mini-task-scheduler.firebaseapp.com",
+      projectId: "mini-task-scheduler",
+      storageBucket: "mini-task-scheduler.firebasestorage.app",
+      messagingSenderId: "422690366640",
+      appId: "1:422690366640:web:6c01e5a7e9768f821f7e28"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDb = getFirestore(app);
+    
+    console.log('✅ Firebase initialized for registration');
+  </script>
   
   <!-- Firebase reCAPTCHA Container -->
-  <div id="recaptcha-container" class="register-recaptcha-hidden"></div>
+  <div id="recaptcha-container" style="display: none;"></div>
 
-  <!-- Load AuthManager -->
-  <!-- <script src="auth-backend.js"></script> -->
-  
   <script>
     // Enhanced Registration System
     class RegistrationManager {
@@ -655,17 +673,31 @@
         this.registrationData = {};
         this.faceData = null;
         this.otpSent = false;
-        this.demoOTP = null; // Store the demo OTP for validation
+        this.confirmationResult = null; // Store Firebase phone confirmation
+        this.recaptchaVerifier = null;
+        this.firebaseUser = null; // Store Firebase user after creation
         
-        // Initialize authentication system
-        this.initializeAuth();
-        
-        this.initializeEventListeners();
-        this.initializeOTPInputs();
-        this.initializePasswordValidation();
-        this.initializeFaceRecognition();
-        
-        console.log('✅ Registration Manager initialized');
+        // Wait for Firebase to initialize
+        this.waitForFirebase().then(() => {
+          this.initializeAuth();
+          this.initializeEventListeners();
+          this.initializeOTPInputs();
+          this.initializePasswordValidation();
+          this.initializeFaceRecognition();
+          console.log('✅ Registration Manager initialized with Firebase');
+        });
+      }
+
+      // Wait for Firebase to be ready
+      async waitForFirebase() {
+        let attempts = 0;
+        while (!window.firebaseAuth && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        if (!window.firebaseAuth) {
+          throw new Error('Firebase failed to initialize');
+        }
       }
 
       // Initialize simple authentication system
@@ -734,24 +766,69 @@
         };
       }
 
-      // Verify OTP
+      // Verify OTP with Firebase
       async verifyOTP(otp, mobile) {
-        // Check demo OTP first
-        const storedOTP = localStorage.getItem('demoOTP');
-        const storedMobile = localStorage.getItem('demoOTPMobile');
-        
-        if (otp === storedOTP && mobile === storedMobile) {
-          localStorage.removeItem('demoOTP');
-          localStorage.removeItem('demoOTPMobile');
-          return { success: true, message: 'OTP verified successfully' };
-        }
-        
-        // Try backend verification
         try {
-          const response = await this.apiCall('/auth/verify-otp', 'POST', { otp, mobile });
-          return response;
+          // Handle test phone number
+          if (this.confirmationResult?.isTestPhone) {
+            if (otp === '123456') {
+              console.log('✅ Test phone OTP verified');
+              
+              // Create Firebase user with email/password
+              const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+              const userCredential = await createUserWithEmailAndPassword(
+                window.firebaseAuth,
+                this.registrationData.email,
+                this.registrationData.password
+              );
+              
+              this.firebaseUser = userCredential.user;
+              console.log('✅ Firebase user created:', this.firebaseUser.uid);
+              
+              return { success: true, message: 'Test OTP verified successfully' };
+            } else {
+              return { success: false, error: 'Invalid test OTP. Use: 123456' };
+            }
+          }
+          
+          // Verify real Firebase OTP
+          if (!this.confirmationResult) {
+            return { success: false, error: 'No OTP sent. Please request OTP first.' };
+          }
+          
+          const result = await this.confirmationResult.confirm(otp);
+          this.firebaseUser = result.user;
+          
+          console.log('✅ Firebase phone OTP verified successfully');
+          console.log('✅ Firebase user created:', this.firebaseUser.uid);
+          
+          // Link email/password to this phone account
+          const { EmailAuthProvider, linkWithCredential } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          
+          try {
+            const credential = EmailAuthProvider.credential(
+              this.registrationData.email,
+              this.registrationData.password
+            );
+            await linkWithCredential(this.firebaseUser, credential);
+            console.log('✅ Email linked to phone account');
+          } catch (linkError) {
+            console.warn('⚠️ Could not link email:', linkError.message);
+            // Continue anyway - phone auth is successful
+          }
+          
+          return { success: true, message: 'OTP verified successfully' };
+          
         } catch (error) {
-          return { success: false, error: 'Invalid OTP' };
+          console.error('❌ OTP verification failed:', error);
+          
+          if (error.code === 'auth/invalid-verification-code') {
+            return { success: false, error: 'Invalid OTP code. Please try again.' };
+          } else if (error.code === 'auth/code-expired') {
+            return { success: false, error: 'OTP expired. Please request a new code.' };
+          } else {
+            return { success: false, error: error.message || 'OTP verification failed' };
+          }
         }
       }
       
@@ -919,53 +996,98 @@
           // Display mobile number
           document.getElementById('mobileDisplay').textContent = this.registrationData.mobile;
           
-          // For demo purposes, we'll generate a visible OTP
-          console.log('📱 Sending OTP to:', this.registrationData.mobile);
+          console.log('📱 Sending Firebase OTP to:', this.registrationData.mobile);
           
-          // Generate demo OTP
-          this.demoOTP = Math.floor(100000 + Math.random() * 900000).toString();
-          
-          // Store for verification
-          localStorage.setItem('demoOTP', this.demoOTP);
-          localStorage.setItem('demoOTPMobile', this.registrationData.mobile);
-          
-          this.otpSent = true;
-          
-          // Show demo OTP display
-          const otpDisplay = document.createElement('div');
-          otpDisplay.id = 'demo-otp-display';
-          otpDisplay.style.cssText = `
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-            font-family: monospace;
-            font-size: 1.2rem;
-            color: #1976d2;
-            font-weight: bold;
-          `;
-          otpDisplay.innerHTML = `
-            <div class="register-otp-title">🔐 <strong>Demo OTP Code</strong></div>
-            <div class="register-otp-code">${this.demoOTP}</div>
-            <div class="register-otp-instructions">
-              Use this code for verification (Demo Mode)
-            </div>
-          `;
-          
-          // Insert the OTP display before the OTP input section
-          const step2 = document.getElementById('step2');
-          const otpSection = step2.querySelector('.otp-section');
-          if (otpSection && !document.getElementById('demo-otp-display')) {
-            otpSection.appendChild(otpDisplay);
+          // Initialize reCAPTCHA if not already done
+          if (!this.recaptchaVerifier) {
+            this.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier(
+              window.firebaseAuth,
+              'recaptcha-container',
+              {
+                'size': 'normal',
+                'callback': (response) => {
+                  console.log('✅ reCAPTCHA solved');
+                },
+                'expired-callback': () => {
+                  console.warn('⚠️ reCAPTCHA expired');
+                  this.recaptchaVerifier = null;
+                }
+              }
+            );
+            await this.recaptchaVerifier.render();
+            document.getElementById('recaptcha-container').style.display = 'block';
           }
           
-          this.showSuccess('Verification code generated! Check the blue box above for your OTP.');
+          // Check for test phone number
+          const testPhone = '+919876543210';
+          if (this.registrationData.mobile === testPhone) {
+            console.log('🔧 Using test phone number - Demo OTP: 123456');
+            
+            // Show test OTP display
+            const otpDisplay = document.createElement('div');
+            otpDisplay.id = 'demo-otp-display';
+            otpDisplay.style.cssText = `
+              background: #fff3cd;
+              border: 2px solid #ffc107;
+              border-radius: 8px;
+              padding: 15px;
+              margin: 15px 0;
+              text-align: center;
+              font-family: monospace;
+              font-size: 1.2rem;
+              color: #856404;
+              font-weight: bold;
+            `;
+            otpDisplay.innerHTML = `
+              <div style="margin-bottom: 8px;">🔐 <strong>Test Phone OTP</strong></div>
+              <div style="font-size: 2rem; letter-spacing: 4px; margin: 10px 0;">123456</div>
+              <div style="font-size: 0.9rem; color: #666;">
+                Test phone number detected. Use OTP: 123456
+              </div>
+            `;
+            
+            const step2 = document.getElementById('step2');
+            const otpSection = step2.querySelector('.otp-section');
+            if (otpSection && !document.getElementById('demo-otp-display')) {
+              otpSection.appendChild(otpDisplay);
+            }
+            
+            this.otpSent = true;
+            this.confirmationResult = { isTestPhone: true }; // Mark as test
+            this.showSuccess('✅ Test OTP generated! Use code: 123456');
+            return;
+          }
+          
+          // Send real Firebase OTP
+          const appVerifier = this.recaptchaVerifier;
+          const { signInWithPhoneNumber } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+          
+          this.confirmationResult = await signInWithPhoneNumber(
+            window.firebaseAuth,
+            this.registrationData.mobile,
+            appVerifier
+          );
+          
+          this.otpSent = true;
+          this.showSuccess('✅ Verification code sent to your phone!');
+          console.log('✅ Firebase OTP sent successfully');
           
         } catch (error) {
-          console.error('Error sending OTP:', error);
-          this.showError('Failed to send verification code: ' + error.message);
+          console.error('❌ Error sending OTP:', error);
+          
+          // Handle specific Firebase errors
+          if (error.code === 'auth/invalid-phone-number') {
+            this.showError('Invalid phone number format. Use format: +1234567890');
+          } else if (error.code === 'auth/too-many-requests') {
+            this.showError('Too many requests. Please try again later or use test number: +919876543210');
+          } else if (error.code === 'auth/captcha-check-failed') {
+            this.showError('reCAPTCHA verification failed. Please refresh and try again.');
+            this.recaptchaVerifier = null;
+          } else {
+            this.showError('Failed to send verification code: ' + error.message);
+          }
+          
+          throw error;
         }
       }
       
@@ -1200,63 +1322,64 @@
         button.disabled = true;
         
         try {
-          // Prepare complete user data for registration
-          const userData = {
-            username: this.registrationData.username,
-            password: this.registrationData.password,
+          // Check if Firebase user was created
+          if (!this.firebaseUser) {
+            // If phone OTP was skipped, create user with email/password
+            console.log('📧 Creating Firebase user with email/password');
+            const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const userCredential = await createUserWithEmailAndPassword(
+              window.firebaseAuth,
+              this.registrationData.email,
+              this.registrationData.password
+            );
+            this.firebaseUser = userCredential.user;
+          }
+          
+          console.log('✅ Firebase user:', this.firebaseUser.uid);
+          
+          // Save user profile and face data to Firestore
+          const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          
+          const userProfile = {
+            uid: this.firebaseUser.uid,
             email: this.registrationData.email,
             firstName: this.registrationData.firstName,
             lastName: this.registrationData.lastName,
+            username: this.registrationData.username,
             mobile: this.registrationData.mobile,
-            otp: this.registrationData.otp,
-            faceData: this.faceData
+            faceDescriptor: this.faceData, // Store face descriptor array
+            createdAt: new Date().toISOString(),
+            authMethod: this.confirmationResult?.isTestPhone ? 'test-phone' : 
+                       this.confirmationResult ? 'phone' : 'email'
           };
           
-          console.log('📋 Registering user:', userData);
+          await setDoc(doc(window.firebaseDb, 'users', this.firebaseUser.uid), userProfile);
+          console.log('✅ User profile saved to Firestore');
           
-          // Clear any previous error messages
-          this.hideMessages();
+          // Generate JWT token for backend API
+          const idToken = await this.firebaseUser.getIdToken();
+          localStorage.setItem('authToken', idToken);
+          localStorage.setItem('userId', this.firebaseUser.uid);
+          localStorage.setItem('userEmail', this.registrationData.email);
           
-          // Test backend connection first
-          const backendAvailable = await this.testBackendConnection();
+          this.showSuccess('✅ Account created successfully! Redirecting to dashboard...');
           
-          let registrationSuccess = false;
-          
-          if (backendAvailable) {
-            // Try to register with backend
-            try {
-              await this.authManager.register(userData);
-              registrationSuccess = true;
-              this.showSuccess('Account created successfully! Redirecting to dashboard...');
-            } catch (backendError) {
-              console.warn('Backend registration failed:', backendError);
-              // Fall back to demo mode
-              registrationSuccess = await this.registerInDemoMode(userData);
-            }
-          } else {
-            // Backend not available, use demo mode directly
-            console.log('📱 Backend not available, using demo registration');
-            registrationSuccess = await this.registerInDemoMode(userData);
-          }
-          
-          if (registrationSuccess) {
-            setTimeout(() => {
-              window.location.href = 'dashboard-enhanced.html';
-            }, 2000);
-          }
+          setTimeout(() => {
+            window.location.href = 'dashboard-enhanced.html';
+          }, 2000);
           
         } catch (error) {
-          console.error('Registration error:', error);
+          console.error('❌ Registration error:', error);
           
           // Provide specific error messages
           let errorMessage = 'Registration failed. Please try again.';
           
-          if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
-            errorMessage = 'Connection failed. Please check your internet connection and try again.';
-          } else if (error.message.includes('username')) {
-            errorMessage = 'Username already exists. Please choose a different username.';
-          } else if (error.message.includes('email')) {
-            errorMessage = 'Email already registered. Please use a different email.';
+          if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'Email already registered. Please login instead.';
+          } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'Password is too weak. Please use a stronger password.';
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Invalid email address format.';
           } else if (error.message) {
             errorMessage = error.message;
           }

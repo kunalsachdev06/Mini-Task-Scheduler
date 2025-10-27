@@ -1,52 +1,19 @@
-// Firebase Configuration for Task Scheduler App// Firebase Configuration for Free Authentication
+// Firebase Configuration for Task Scheduler App
+// Real Firebase Setup with Authentication
 
-// This is a minimal Firebase configuration for development// Phone Auth: 25,000 SMS per month (FREE)
+// Your Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAKSP427ylNW6ZAqZsZJ92CS549t76mSMk",
+  authDomain: "mini-task-scheduler.firebaseapp.com",
+  projectId: "mini-task-scheduler",
+  storageBucket: "mini-task-scheduler.firebasestorage.app",
+  messagingSenderId: "997330328846",
+  appId: "1:997330328846:web:c217d6b5e4686f70298b5f",
+  measurementId: "G-V0M473G51C"
+};
 
-// Firestore: 1GB storage, 50k reads, 20k writes per day (FREE)
-
-// Simple Firebase-like configuration for demo purposes// Firebase Auth: Unlimited users (FREE)
-
-window.firebaseConfig = {
-
-  initialized: true,// ============================================
-
-  // This would contain your actual Firebase config in production// SETUP INSTRUCTIONS
-
-  // For now, we'll use a demo configuration// ============================================
-
-  demo: true/* 
-
-};1. Go to https://console.firebase.google.com/
-
-2. Create a new project or select existing one
-
-// Initialize Firebase-like services3. Enable Authentication > Sign-in providers > Phone
-
-window.firebase = {4. Enable Firestore Database
-
-  auth: () => ({5. Copy your config from Project Settings > General > Web apps
-
-    onAuthStateChanged: (callback) => {6. Replace the config object below with your actual values
-
-      // Demo auth state7. Add your domain to Authentication > Settings > Authorized domains
-
-      setTimeout(() => callback(null), 100);
-
-    },For reCAPTCHA to work locally, add 'localhost' to authorized domains.
-
-    signOut: () => Promise.resolve()*/
-
-  }),
-
-  initializeApp: (config) => {// ============================================
-
-    console.log('🔥 Firebase demo initialized');// FIREBASE CONFIGURATION
-
-    return {};// ============================================
-
-  }
-
-};// TODO: Replace with your actual Firebase config
+// Make config available globally
+window.firebaseConfig = firebaseConfig;// TODO: Replace with your actual Firebase config
 
 const firebaseConfig = {
 
