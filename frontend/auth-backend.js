@@ -32,7 +32,7 @@ class AuthManager {
     };
 
     if (this.accessToken) {
-      config.headers['Authorization'] = `Bearer `;
+      config.headers['Authorization'] = `Bearer ${this.accessToken}`;
     }
 
     if (data && (method === 'POST' || method === 'PUT')) {
@@ -40,8 +40,8 @@ class AuthManager {
     }
 
     try {
-      const url = ``;
-      console.log(`📡 API Call:  `);
+      const url = `${this.apiBaseUrl}${endpoint}`;
+      console.log(`📡 API Call: ${method} ${url}`);
       
       const response = await fetch(url, config);
       const result = await response.json();
