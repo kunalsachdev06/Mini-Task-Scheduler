@@ -169,8 +169,13 @@ async function initializeDatabase() {
     }
 }
 
-// JWT middleware
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
+// JWT middleware - SECURITY: Require JWT_SECRET from environment
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+    console.error('❌ SECURITY ERROR: JWT_SECRET environment variable is required and must be at least 32 characters long!');
+    console.error('Set JWT_SECRET in your .env file before starting the server.');
+    process.exit(1);
+}
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];

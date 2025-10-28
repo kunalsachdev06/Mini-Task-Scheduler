@@ -215,38 +215,73 @@ function showNotificationPrompt(isMobile = false) {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
     modal.className = 'notification-permission-modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>🔔 Enable Task Reminders</h2>
-        </div>
-        <div class="modal-body">
-          <p>${isMobile ? 
-            'Get push notifications on your phone even when the browser is closed!' : 
-            'Get notified about your tasks even when this website is closed!'}</p>
-          <ul>
-            <li>✅ Never miss a scheduled task</li>
-            <li>✅ Works in background${isMobile ? ' on your phone' : ''}</li>
-            <li>✅ Can be disabled anytime</li>
-            ${isMobile ? '<li>✅ Vibration alerts</li>' : ''}
-          </ul>
-          ${isMobile ? '<p><small>📱 Perfect for mobile task management!</small></p>' : ''}
-        </div>
-        <div class="modal-actions">
-          <button id="enableNotifications" class="btn-primary">
-            ${isMobile ? '📱 Enable Mobile Alerts' : 'Enable Notifications'}
-          </button>
-          <button id="notNow" class="btn-secondary">Not Now</button>
-        </div>
-      </div>
-    `;
+    
+    // Create modal content safely using DOM methods
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'modal-header';
+    const h2 = document.createElement('h2');
+    h2.textContent = '🔔 Enable Task Reminders';
+    modalHeader.appendChild(h2);
+    
+    const modalBody = document.createElement('div');
+    modalBody.className = 'modal-body';
+    
+    const p = document.createElement('p');
+    p.textContent = isMobile ? 
+      'Get push notifications on your phone even when the browser is closed!' : 
+      'Get notified about your tasks even when this website is closed!';
+    modalBody.appendChild(p);
+    
+    const ul = document.createElement('ul');
+    const features = [
+      '✅ Never miss a scheduled task',
+      `✅ Works in background${isMobile ? ' on your phone' : ''}`,
+      '✅ Can be disabled anytime'
+    ];
+    if (isMobile) features.push('✅ Vibration alerts');
+    
+    features.forEach(feature => {
+      const li = document.createElement('li');
+      li.textContent = feature;
+      ul.appendChild(li);
+    });
+    modalBody.appendChild(ul);
+    
+    if (isMobile) {
+      const small = document.createElement('small');
+      small.textContent = '📱 Perfect for mobile task management!';
+      const p2 = document.createElement('p');
+      p2.appendChild(small);
+      modalBody.appendChild(p2);
+    }
+    
+    const modalActions = document.createElement('div');
+    modalActions.className = 'modal-actions';
+    
+    const enableBtn = document.createElement('button');
+    enableBtn.id = 'enableNotifications';
+    enableBtn.className = 'btn-primary';
+    enableBtn.textContent = isMobile ? '📱 Enable Mobile Alerts' : 'Enable Notifications';
+    
+    const notNowBtn = document.createElement('button');
+    notNowBtn.id = 'notNow';
+    notNowBtn.className = 'btn-secondary';
+    notNowBtn.textContent = 'Not Now';
+    
+    modalActions.appendChild(enableBtn);
+    modalActions.appendChild(notNowBtn);
+    
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modalContent.appendChild(modalActions);
+    modal.appendChild(modalContent);
     
     document.body.appendChild(modal);
     
-    // Add touch-friendly event handlers
-    const enableBtn = document.getElementById('enableNotifications');
-    const notNowBtn = document.getElementById('notNow');
-    
+    // Add touch-friendly event handlers using the already created buttons
     const enableHandler = (e) => {
       e.preventDefault();
       document.body.removeChild(modal);
@@ -365,30 +400,97 @@ function loadTasks() {
   const tbody = document.getElementById('taskList');
   if (!tbody) return;
   
+  // Clear existing content
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+  
   if (tasks.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="no-tasks-message">No tasks yet</td></tr>';
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    td.className = 'no-tasks-message';
+    td.textContent = 'No tasks yet';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
     return;
   }
   
-  tbody.innerHTML = tasks.map(task => `
-    <tr class="task-row ${task.status}" data-id="${task.id}">
-      <td>
-        <div class="task-title">${task.command}</div>
-        <div class="task-mood">${getMoodEmoji(task.mood)}</div>
-      </td>
-      <td>${formatTime(task.time)}</td>
-      <td><span class="priority-badge ${task.priority.toLowerCase()}">${task.priority}</span></td>
-      <td>${task.frequency}</td>
-      <td><span class="status-badge ${task.status}">${task.status}</span></td>
-      <td>
-        <div class="card-actions">
-          <button onclick="runTask(${task.id})" class="run" title="Run Task">▶️</button>
-          <button onclick="editTask(${task.id})" class="edit" title="Edit">✏️</button>
-          <button onclick="deleteTask(${task.id})" class="delete" title="Delete">🗑️</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  tasks.forEach(task => {
+    const tr = document.createElement('tr');
+    tr.className = `task-row ${task.status}`;
+    tr.dataset.id = task.id;
+    
+    // Task title and mood
+    const td1 = document.createElement('td');
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'task-title';
+    titleDiv.textContent = task.command;
+    const moodDiv = document.createElement('div');
+    moodDiv.className = 'task-mood';
+    moodDiv.textContent = getMoodEmoji(task.mood);
+    td1.appendChild(titleDiv);
+    td1.appendChild(moodDiv);
+    
+    // Time
+    const td2 = document.createElement('td');
+    td2.textContent = formatTime(task.time);
+    
+    // Priority
+    const td3 = document.createElement('td');
+    const prioritySpan = document.createElement('span');
+    prioritySpan.className = `priority-badge ${task.priority.toLowerCase()}`;
+    prioritySpan.textContent = task.priority;
+    td3.appendChild(prioritySpan);
+    
+    // Frequency
+    const td4 = document.createElement('td');
+    td4.textContent = task.frequency;
+    
+    // Status
+    const td5 = document.createElement('td');
+    const statusSpan = document.createElement('span');
+    statusSpan.className = `status-badge ${task.status}`;
+    statusSpan.textContent = task.status;
+    td5.appendChild(statusSpan);
+    
+    // Actions
+    const td6 = document.createElement('td');
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'card-actions';
+    
+    const runBtn = document.createElement('button');
+    runBtn.className = 'run';
+    runBtn.title = 'Run Task';
+    runBtn.textContent = '▶️';
+    runBtn.onclick = () => runTask(task.id);
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit';
+    editBtn.title = 'Edit';
+    editBtn.textContent = '✏️';
+    editBtn.onclick = () => editTask(task.id);
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete';
+    deleteBtn.title = 'Delete';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.onclick = () => deleteTask(task.id);
+    
+    actionsDiv.appendChild(runBtn);
+    actionsDiv.appendChild(editBtn);
+    actionsDiv.appendChild(deleteBtn);
+    td6.appendChild(actionsDiv);
+    
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+    tr.appendChild(td5);
+    tr.appendChild(td6);
+    
+    tbody.appendChild(tr);
+  });
 }
 
 // Delete task
@@ -559,11 +661,21 @@ function updateHeatmap() {
   });
   
   const maxTasks = Math.max(...hours, 1);
-  heatmap.innerHTML = hours.map((count, hour) => {
+  
+  // Clear existing heatmap
+  while (heatmap.firstChild) {
+    heatmap.removeChild(heatmap.firstChild);
+  }
+  
+  // Create heatmap cells safely
+  hours.forEach((count, hour) => {
     const intensity = count / maxTasks;
     const intensityLevel = Math.floor(intensity * 10); // 0-10 levels
-    return `<div class="cell heatmap-intensity-${intensityLevel}" title="${hour}:00 - ${count} tasks"></div>`;
-  }).join('');
+    const cell = document.createElement('div');
+    cell.className = `cell heatmap-intensity-${intensityLevel}`;
+    cell.title = `${hour}:00 - ${count} tasks`;
+    heatmap.appendChild(cell);
+  });
 }
 
 // Toast notifications
