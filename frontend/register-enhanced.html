@@ -1001,7 +1001,8 @@
           
           // Initialize reCAPTCHA if not already done
           if (!this.recaptchaVerifier) {
-            this.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier(
+            const { RecaptchaVerifier } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            this.recaptchaVerifier = new RecaptchaVerifier(
               window.firebaseAuth,
               'recaptcha-container',
               {
