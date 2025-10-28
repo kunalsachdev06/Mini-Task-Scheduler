@@ -651,12 +651,21 @@
         const video = document.getElementById('faceVideo');
         videoStream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
-            width: 640, 
-            height: 480,
-            facingMode: 'user'
+            width: { ideal: 480 }, 
+            height: { ideal: 360 },
+            facingMode: 'user',
+            frameRate: { ideal: 15, max: 30 }
           } 
         });
         video.srcObject = videoStream;
+        
+        // Wait for video to be ready
+        await new Promise(resolve => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
+        });
         
         statusText.textContent = '👤 Position your face in the center...';
         
@@ -678,7 +687,7 @@
       
       let faceDetected = false;
       let detectionAttempts = 0;
-      const maxAttempts = 30; // 10 seconds at 3 FPS
+      const maxAttempts = 40; // 8 seconds at 5 FPS
       
       const interval = setInterval(async () => {
         if (detectionAttempts >= maxAttempts) {
@@ -689,7 +698,10 @@
         }
         
         const detections = await faceapi
-          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ 
+            inputSize: 224, 
+            scoreThreshold: 0.4 
+          }))
           .withFaceLandmarks()
           .withFaceDescriptor();
         
@@ -710,9 +722,9 @@
           }
         } else {
           detectionAttempts++;
-          statusText.textContent = `👤 Looking for face... (${Math.floor(detectionAttempts / 3)}s)`;
+          statusText.textContent = `👤 Looking for face... (${Math.floor(detectionAttempts / 5)}s)`;
         }
-      }, 333); // ~3 FPS
+      }, 200); // ~5 FPS (faster detection)
     }
 
     // Save Face Data
